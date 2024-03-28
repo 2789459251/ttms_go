@@ -37,3 +37,10 @@ func SearchSnack(name string) (snacks []Snack) {
 func Insertsnack(snack Snack) {
 	utils.DB.Create(snack)
 }
+func Querysnack(id int) (s Snack) {
+	utils.DB.Where("id = ?", id).First(s)
+	return
+}
+func (s Snack) Refleshsnack() {
+	utils.DB.Updates(s)
+}

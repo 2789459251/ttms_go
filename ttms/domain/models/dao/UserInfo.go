@@ -8,9 +8,9 @@ import (
 
 type UserInfo struct {
 	gorm.Model
-	Wallet int
+	Wallet float64
 	Ticket []models.Ticket
-	Snack  []models.Snack
+	Snack  []Snack_
 }
 
 func (user UserInfo) TableName() string {
@@ -20,4 +20,7 @@ func FindUserInfo(id string) UserInfo {
 	u := &UserInfo{}
 	utils.DB.Where("id = ?", id).First(&u)
 	return *u
+}
+func (u UserInfo) RefleshUserInfo() {
+	utils.DB.Updates(u)
 }

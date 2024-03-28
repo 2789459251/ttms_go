@@ -2,14 +2,47 @@ package service
 
 import (
 	"TTMS_go/ttms/domain/models"
+	"TTMS_go/ttms/domain/models/dao"
 	utils "TTMS_go/ttms/util"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"strconv"
 )
 
 func BuySnack(c *gin.Context) {
-	//_, user := User(c)
+	_, user := User(c)
+	id_ := c.Request.FormValue("id")
+	num_ := c.Request.FormValue("num")
+	id, _ := strconv.Atoi(id_)
+	num, _ := strconv.Atoi(num_)
+	s := models.Querysnack(id)
+	//Todo 设计读写锁
+	if user.Wallet < s.Price*float64(num) {
+		utils.RespFail(c.Writer, "您的账户余额不足，请充值")
+		return
+	}
+	if num > s.Stock {
+		utils.RespFail(c.Writer, "库存不足"+num_)
+		return
+	}
+	s.Stock -= num
+	user.Wallet -= s.Price * float64(num)
 
+	s_ := dao.Snack_{
+		Id:   s.ID,
+		Name: s.Name,
+		Num:  num,
+	}
+	user.Snack = append(user.Snack, s_)
+	//Todo 开启事务
+	utils.DB.Transaction(
+		func(tx *gorm.DB) (err error) {
+			user.RefleshUserInfo()
+			s.Refleshsnack()
+			return
+		})
+
+	utils.RespOk(c.Writer, user.Snack, "已购买"+num_+"份"+s.Name)
 }
 
 func ShowSnacks(c *gin.Context) {
@@ -56,4 +89,10 @@ func Putaway(c *gin.Context) {
 	}
 	models.Insertsnack(snack)
 	utils.RespOk(c.Writer, snack, snack.Name+"已上架")
+}
+func Getdetail(c *gin.Context) {
+	id_ := c.Param("id")
+	id, _ := strconv.Atoi(id_)
+	s := models.Querysnack(id)
+	utils.RespOk(c.Writer, s, "返回指定id零食")
 }

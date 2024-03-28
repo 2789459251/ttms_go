@@ -23,6 +23,7 @@ func Router() *gin.Engine {
 	snackGroup.POST("/putaway", service.Putaway)
 	snackGroup.GET("/getinfos", service.ShowSnacks) //查询零食列表
 	snackGroup.GET("/search", service.SearchSnack)  //搜索特定零食
+	snackGroup.GET("/query", service.Getdetail)
 
 	//票务操作
 

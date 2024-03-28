@@ -4,11 +4,18 @@ import (
 	"TTMS_go/ttms/domain/models"
 	dto "TTMS_go/ttms/domain/models/dao"
 	utils "TTMS_go/ttms/util"
+	"bytes"
+	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/qiniu/go-sdk/v7/auth/qbox"
+	"github.com/qiniu/go-sdk/v7/storage"
+	"github.com/spf13/viper"
 	"math/rand"
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -101,6 +108,47 @@ func User(c *gin.Context) (models.User, dto.UserInfo) {
 	return user, userinfo
 }
 func upload(r *http.Request, w http.ResponseWriter, c *gin.Context) (url string) {
-	c.FormFile("picture")
-	return ""
+	url, fileByte := geturl(r, w, c)
+	putPolicy := storage.PutPolicy{Scope: viper.GetString("qiniu.Scope")}
+	mac := qbox.NewMac(viper.GetString("qiniu.QiniuAK"), viper.GetString("qiniu.QiniuSK"))
+	upTocken := putPolicy.UploadToken(mac)
+
+	cfg := storage.Config{Zone: &storage.ZoneHuabei, UseHTTPS: false, UseCdnDomains: false}
+	bucketManager := storage.NewBucketManager(mac, &cfg)
+	fileInfo, sErr := bucketManager.Stat(viper.GetString("qiniu.Scope"), url)
+	if sErr == nil && fileInfo.Fsize != 0 {
+		utils.RespFail(w, "图片已存在")
+		return
+	}
+
+	formUploader := storage.NewFormUploader(&cfg)
+	ret := storage.PutRet{}
+	putExtra := storage.PutExtra{}
+	dataLen := int64(len(fileByte))
+	if dataLen <= 0 {
+		utils.RespFail(w, "文件为空")
+		return
+	}
+	err := formUploader.Put(context.Background(), &ret, upTocken, url, bytes.NewReader(fileByte), dataLen, &putExtra)
+	if err != nil {
+		utils.RespFail(w, "上传图片出错")
+		return
+	}
+	return
+}
+func geturl(r *http.Request, w http.ResponseWriter, c *gin.Context) (url string, byte []byte) {
+	file, head, err := r.FormFile("picture")
+	if err != nil {
+		utils.RespFail(w, "文件无效")
+		return
+	}
+	file.Read(byte)
+	var suffix string = ".png"
+	name := head.Filename
+	t := strings.Split(name, ".")
+	if len(t) > 1 {
+		suffix = "." + t[len(t)-1]
+	}
+	url = fmt.Sprintf("%d%04d%s", time.Now().Unix(), rand.Int31(), suffix)
+	return
 }
