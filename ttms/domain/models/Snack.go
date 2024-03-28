@@ -2,11 +2,15 @@ package models
 
 import (
 	utils "TTMS_go/ttms/util"
+	"fmt"
 	"gorm.io/gorm"
+	"log"
+	"sync"
 )
 
 type Snack struct {
 	gorm.Model
+	mu      sync.RWMutex
 	Name    string
 	Picture string
 	Info    string
@@ -44,4 +48,17 @@ func Querysnack(id int) (s Snack) {
 func (s Snack) Refleshsnack() (err error) {
 	err = utils.DB.Updates(s).Error
 	return
+}
+func (s *Snack) GetStock() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.Stock
+}
+func (s *Snack) UpdateStock(Func func() (err error)) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if Func() != nil {
+		log.Println(fmt.Sprintln("更新操作有错误，事务回滚"))
+	}
 }

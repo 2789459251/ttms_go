@@ -15,50 +15,59 @@ func BuySnack(c *gin.Context) {
 	num_ := c.Request.FormValue("num")
 	id, _ := strconv.Atoi(id_)
 	num, _ := strconv.Atoi(num_)
+
 	s := models.Querysnack(id)
-	//Todo 设计读写锁
+	// 读锁
+	stock := s.GetStock()
+
 	if user.Wallet < s.Price*float64(num) {
 		utils.RespFail(c.Writer, "您的账户余额不足，请充值")
 		return
 	}
-	if num > s.Stock {
+	if num > stock {
 		utils.RespFail(c.Writer, "库存不足"+num_)
 		return
 	}
-	s.Stock -= num
-	user.Wallet -= s.Price * float64(num)
 
-	s_ := dao.Snack_{
-		Id:   s.ID,
-		Name: s.Name,
-		Num:  num,
-	}
-	user.Snack = append(user.Snack, s_)
-	//Todo 开启事务
-	err := utils.DB.Transaction(
-		func(tx *gorm.DB) (err error) {
-			// 进行数据库操作
-			if err := user.RefleshUserInfo(); err != nil {
-				// 发生错误，进行回滚
-				tx.Rollback()
-				return err
-			}
+	//进入写锁
+	s.UpdateStock(func() (err error) {
+		s.Stock -= num
+		user.Wallet -= s.Price * float64(num)
 
-			if err := s.Refleshsnack(); err != nil {
-				// 发生错误，进行回滚
-				tx.Rollback()
-				return err
-			}
+		s_ := dao.Snack_{
+			Id:   s.ID,
+			Name: s.Name,
+			Num:  num,
+		}
+		user.Snack = append(user.Snack, s_)
+		//Todo 开启事务
+		err = utils.DB.Transaction(
+			func(tx *gorm.DB) (err error) {
+				// 进行数据库操作
+				if err := user.RefleshUserInfo(); err != nil {
+					// 发生错误，进行回滚
+					tx.Rollback()
+					return err
+				}
 
-			// 没有错误，提交事务
-			return nil
-		})
-	if err != nil {
-		utils.RespFail(c.Writer, "购买失败")
+				if err := s.Refleshsnack(); err != nil {
+					// 发生错误，进行回滚
+					tx.Rollback()
+					return err
+				}
+
+				// 没有错误，提交事务
+				return nil
+			})
+		if err != nil {
+			utils.RespFail(c.Writer, "购买失败")
+			return
+		}
+
+		utils.RespOk(c.Writer, user.Snack, "已购买"+num_+"份"+s.Name)
 		return
-	}
+	})
 
-	utils.RespOk(c.Writer, user.Snack, "已购买"+num_+"份"+s.Name)
 }
 
 func ShowSnacks(c *gin.Context) {
