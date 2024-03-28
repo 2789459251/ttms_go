@@ -2,20 +2,20 @@ package main
 
 import (
 	router "TTMS_go/ttms/app/api"
-	"TTMS_go/ttms/domain/models"
-	dto "TTMS_go/ttms/domain/models/dao"
+	models2 "TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
 )
 
 func main() {
+	utils.InitConfig()
 	utils.InitMysql()
 	utils.InitRedis()
-	utils.DB.AutoMigrate(models.User{})
-	utils.DB.AutoMigrate(dto.UserInfo{})
-	utils.DB.AutoMigrate(models.Ticket{})
-	utils.DB.AutoMigrate(models.Place{})
-	utils.DB.AutoMigrate(models.Movie{})
-	utils.DB.AutoMigrate(models.Snack{})
+	utils.DB.AutoMigrate(models2.User{})
+	utils.DB.AutoMigrate(models2.UserInfo{})
+	utils.DB.AutoMigrate(models2.Ticket{})
+	utils.DB.AutoMigrate(models2.Place{})
+	utils.DB.AutoMigrate(models2.Movie{})
+	utils.DB.AutoMigrate(models2.Snack{})
 	r := router.Router()
 	r.Run("0.0.0.0:8082")
 }

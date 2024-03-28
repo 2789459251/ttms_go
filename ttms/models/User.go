@@ -1,7 +1,6 @@
 package models
 
 import (
-	dto "TTMS_go/ttms/domain/models/dao"
 	utils "TTMS_go/ttms/util"
 	"gorm.io/gorm"
 )
@@ -11,17 +10,17 @@ import (
 // `valid:"matches(^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$)"`
 type User struct {
 	gorm.Model
-	Phone      string       `validate:"required"`
-	Password   string       `validate:"required"`
-	UserInfoId int          `json:"user_info_id"`
-	UserInfo   dto.UserInfo `gorm:"foreignKey:user_info_id"`
+	Phone      string   `validate:"required"`
+	Password   string   `validate:"required"`
+	UserInfoId int      `json:"user_info_id"`
+	UserInfo   UserInfo `gorm:"foreignKey:user_info_id"`
 }
 
 func (table *User) TableName() string {
 	return "user_basic"
 }
 func CreateUser(user User) *gorm.DB {
-	userInfo := dto.UserInfo{}
+	userInfo := UserInfo{}
 	user.UserInfoId = int(user.ID)
 	//Todo: 这里的user.userInfoId应该让userinfo创建结束后赋值,但是也必须考虑token中userInfoId
 	utils.DB.Create(&userInfo)
@@ -48,7 +47,7 @@ func FindUserByUserInfoId(id string) User {
 	utils.DB.Where("user_info_id?", id).First(&user)
 	return user
 }
-func RefreshUserInfo(id string, userInfo dto.UserInfo) {
+func RefreshUserInfo(id string, userInfo UserInfo) {
 	user := FindUserByUserInfoId(id)
 	user.UserInfo = userInfo
 	utils.DB.Updates(&user)

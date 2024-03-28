@@ -1,8 +1,7 @@
 package service
 
 import (
-	"TTMS_go/ttms/domain/models"
-	"TTMS_go/ttms/domain/models/dao"
+	models2 "TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -16,7 +15,7 @@ func BuySnack(c *gin.Context) {
 	id, _ := strconv.Atoi(id_)
 	num, _ := strconv.Atoi(num_)
 
-	s := models.Querysnack(id)
+	s := models2.Querysnack(id)
 	// 读锁
 	stock := s.GetStock()
 
@@ -34,7 +33,7 @@ func BuySnack(c *gin.Context) {
 		s.Stock -= num
 		user.Wallet -= s.Price * float64(num)
 
-		s_ := dao.Snack_{
+		s_ := models2.Snack_{
 			Id:   s.ID,
 			Name: s.Name,
 			Num:  num,
@@ -71,7 +70,7 @@ func BuySnack(c *gin.Context) {
 }
 
 func ShowSnacks(c *gin.Context) {
-	snack := models.Showsnacks()
+	snack := models2.Showsnacks()
 	utils.RespOk(c.Writer, snack, "返回所有零食")
 }
 
@@ -82,7 +81,7 @@ func SearchSnack(c *gin.Context) {
 		utils.RespFail(c.Writer, "名字不能为空")
 		return
 	}
-	snack := models.SearchSnack(name)
+	snack := models2.SearchSnack(name)
 	utils.RespOk(c.Writer, snack, "返回相关零食")
 }
 
@@ -93,7 +92,7 @@ func Putaway(c *gin.Context) {
 	url := upload(r, w, c)
 	stock, _ := strconv.Atoi(c.Request.FormValue("stock"))
 	price, _ := strconv.ParseFloat(c.Request.FormValue("price"), 64)
-	snack := models.Snack{
+	snack := models2.Snack{
 		Name:    c.Request.FormValue("name"),
 		Picture: url,
 		Info:    c.Request.FormValue("info"),
@@ -112,12 +111,12 @@ func Putaway(c *gin.Context) {
 		utils.RespFail(c.Writer, "描述不能为空")
 		return
 	}
-	models.Insertsnack(snack)
+	models2.Insertsnack(snack)
 	utils.RespOk(c.Writer, snack, snack.Name+"已上架")
 }
 func Getdetail(c *gin.Context) {
 	id_ := c.Param("id")
 	id, _ := strconv.Atoi(id_)
-	s := models.Querysnack(id)
+	s := models2.Querysnack(id)
 	utils.RespOk(c.Writer, s, "返回指定id零食")
 }

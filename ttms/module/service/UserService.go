@@ -1,7 +1,7 @@
 package service
 
 import (
-	"TTMS_go/ttms/domain/models"
+	"TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
 	"fmt"
 	"github.com/gin-gonic/gin"

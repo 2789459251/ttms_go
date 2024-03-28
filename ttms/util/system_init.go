@@ -19,7 +19,7 @@ var (
 
 func InitConfig() {
 	viper.SetConfigName("app")
-	viper.AddConfigPath("config")
+	viper.AddConfigPath("ttms/conf")
 	err := viper.ReadInConfig()
 	if err != nil {
 		fmt.Println(err)
@@ -36,7 +36,7 @@ func InitMysql() {
 			Colorful:      true,
 		},
 	)
-
+	fmt.Println(viper.GetString("mysql.dns"))
 	DB, _ = gorm.Open(mysql.Open(viper.GetString("mysql.dns")),
 		&gorm.Config{Logger: newLogger})
 

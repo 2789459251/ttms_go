@@ -1,7 +1,6 @@
-package dao
+package models
 
 import (
-	"TTMS_go/ttms/domain/models"
 	utils "TTMS_go/ttms/util"
 	"gorm.io/gorm"
 )
@@ -9,7 +8,7 @@ import (
 type UserInfo struct {
 	gorm.Model
 	Wallet float64
-	Ticket []models.Ticket
+	Ticket []Ticket
 	Snack  []Snack_
 }
 

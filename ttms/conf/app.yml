@@ -1,5 +1,5 @@
 mysql:
-  dns: root:123@tcp(127.0.0.1:3306)/color?charset=utf8mb4&parseTime=True&loc=Local
+  dns: root:123@tcp(127.0.0.1:3306)/ttms?charset=utf8mb4&parseTime=True&loc=Local
 redis:
   addr: "127.0.0.1:6379"
   DB: 0

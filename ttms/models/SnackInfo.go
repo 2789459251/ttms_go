@@ -1,4 +1,4 @@
-package dao
+package models
 
 type Snack_ struct {
 	Id   uint

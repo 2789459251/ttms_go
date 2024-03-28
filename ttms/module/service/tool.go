@@ -1,8 +1,7 @@
 package service
 
 import (
-	"TTMS_go/ttms/domain/models"
-	dto "TTMS_go/ttms/domain/models/dao"
+	models2 "TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
 	"bytes"
 	"context"
@@ -66,7 +65,7 @@ func isStrongPassword(password string) bool {
 	return hasUpperCase && hasLowerCase && hasDigit && hasSpecialChar
 }
 
-func signed(user models.User, c *gin.Context) bool {
+func signed(user models2.User, c *gin.Context) bool {
 	// 查询数据库，通过用户密码拿到 userId
 	userId := user.ID
 	// token 过期时间 12 h，Time 类型
@@ -101,10 +100,10 @@ func token(c *gin.Context) string {
 }
 
 // Todo 刷新token的操作
-func User(c *gin.Context) (models.User, dto.UserInfo) {
+func User(c *gin.Context) (models2.User, models2.UserInfo) {
 	id, _ := c.Get("userInfoId")
-	user := models.FindUserById(strconv.Itoa(int(id.(uint64))))
-	userinfo := dto.FindUserInfo(strconv.Itoa(user.UserInfoId))
+	user := models2.FindUserById(strconv.Itoa(int(id.(uint64))))
+	userinfo := models2.FindUserInfo(strconv.Itoa(user.UserInfoId))
 	return user, userinfo
 }
 func upload(r *http.Request, w http.ResponseWriter, c *gin.Context) (url string) {
