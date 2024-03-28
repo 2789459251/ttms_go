@@ -1,12 +1,10 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"time"
 )
 
 type Ticket struct {
-	gorm.Model
 	//影片名
 	Name string
 	//价格
@@ -14,7 +12,7 @@ type Ticket struct {
 	//演出厅
 	Place int
 	//座位
-	Seat seat
+	Seat seat `gorm:"type:json"`
 	//状态
 	Issold bool
 	//影片开始结束时间
@@ -27,6 +25,6 @@ type seat struct {
 	y int
 }
 
-func (ticket Ticket) TableName() string {
-	return "ticket_basic"
-}
+//func (ticket Ticket) TableName() string {
+//	return "ticket_basic"
+//}

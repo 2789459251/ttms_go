@@ -76,7 +76,7 @@ func ShowSnacks(c *gin.Context) {
 
 // 查询特定名称零食
 func SearchSnack(c *gin.Context) {
-	name := c.Param("name")
+	name := c.Query("name")
 	if name == "" {
 		utils.RespFail(c.Writer, "名字不能为空")
 		return
@@ -89,7 +89,11 @@ func SearchSnack(c *gin.Context) {
 func Putaway(c *gin.Context) {
 	r := c.Request
 	w := c.Writer
-	url := upload(r, w, c)
+	url, err := upload(r, w, c)
+	if err != nil {
+		utils.RespFail(c.Writer, err.Error())
+		return
+	}
 	stock, _ := strconv.Atoi(c.Request.FormValue("stock"))
 	price, _ := strconv.ParseFloat(c.Request.FormValue("price"), 64)
 	snack := models2.Snack{
@@ -115,7 +119,7 @@ func Putaway(c *gin.Context) {
 	utils.RespOk(c.Writer, snack, snack.Name+"已上架")
 }
 func Getdetail(c *gin.Context) {
-	id_ := c.Param("id")
+	id_ := c.Query("id")
 	id, _ := strconv.Atoi(id_)
 	s := models2.Querysnack(id)
 	utils.RespOk(c.Writer, s, "返回指定id零食")

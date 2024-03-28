@@ -22,7 +22,7 @@ func (snack Snack) TableName() string {
 	return "snack_basic"
 }
 func Showsnacks() (snacks []Snack) {
-	utils.DB.Find(snacks)
+	utils.DB.Find(&snacks)
 	return
 }
 func SearchSnack(name string) (snacks []Snack) {
@@ -30,19 +30,19 @@ func SearchSnack(name string) (snacks []Snack) {
 	for i, i2 := range name {
 		c := string(i2)
 		if i == 0 {
-			str += "NameLIKE %" + c + "%"
+			str += "name LIKE '%" + c + "%'"
 		} else {
-			str += "AND Name LIKE %" + c + "%"
+			str += " AND name LIKE '%" + c + "%'"
 		}
 	}
-	utils.DB.Where(str).Find(snacks)
+	utils.DB.Where(str).Find(&snacks)
 	return
 }
 func Insertsnack(snack Snack) {
-	utils.DB.Create(snack)
+	utils.DB.Create(&snack)
 }
 func Querysnack(id int) (s Snack) {
-	utils.DB.Where("id = ?", id).First(s)
+	utils.DB.Where("id = ?", id).First(&s)
 	return
 }
 func (s Snack) Refleshsnack() (err error) {

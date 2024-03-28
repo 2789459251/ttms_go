@@ -8,7 +8,7 @@ import (
 type Place struct {
 	gorm.Model
 	Name      string
-	Seat      [][]bool
+	Seat      [][]bool `gorm:"type:json"`
 	N         int
 	M         int
 	Movie     int
