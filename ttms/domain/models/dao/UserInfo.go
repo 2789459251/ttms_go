@@ -21,6 +21,7 @@ func FindUserInfo(id string) UserInfo {
 	utils.DB.Where("id = ?", id).First(&u)
 	return *u
 }
-func (u UserInfo) RefleshUserInfo() {
-	utils.DB.Updates(u)
+func (u UserInfo) RefleshUserInfo() (err error) {
+	err = utils.DB.Updates(u).Error
+	return
 }

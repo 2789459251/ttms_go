@@ -41,6 +41,7 @@ func Querysnack(id int) (s Snack) {
 	utils.DB.Where("id = ?", id).First(s)
 	return
 }
-func (s Snack) Refleshsnack() {
-	utils.DB.Updates(s)
+func (s Snack) Refleshsnack() (err error) {
+	err = utils.DB.Updates(s).Error
+	return
 }

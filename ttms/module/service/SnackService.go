@@ -35,12 +35,28 @@ func BuySnack(c *gin.Context) {
 	}
 	user.Snack = append(user.Snack, s_)
 	//Todo 开启事务
-	utils.DB.Transaction(
+	err := utils.DB.Transaction(
 		func(tx *gorm.DB) (err error) {
-			user.RefleshUserInfo()
-			s.Refleshsnack()
-			return
+			// 进行数据库操作
+			if err := user.RefleshUserInfo(); err != nil {
+				// 发生错误，进行回滚
+				tx.Rollback()
+				return err
+			}
+
+			if err := s.Refleshsnack(); err != nil {
+				// 发生错误，进行回滚
+				tx.Rollback()
+				return err
+			}
+
+			// 没有错误，提交事务
+			return nil
 		})
+	if err != nil {
+		utils.RespFail(c.Writer, "购买失败")
+		return
+	}
 
 	utils.RespOk(c.Writer, user.Snack, "已购买"+num_+"份"+s.Name)
 }
