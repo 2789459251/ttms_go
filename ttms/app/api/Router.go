@@ -2,6 +2,7 @@ package router
 
 import (
 	"TTMS_go/ttms/module/service"
+	utils "TTMS_go/ttms/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,6 +19,7 @@ func Router() *gin.Engine {
 	userGroup.POST("/resetPassword", service.ResetPassword)
 
 	snackGroup := r.Group("/snack/api")
+	snackGroup.Use(utils.JWTAuth())
 	//零食操作
 	snackGroup.POST("/buy", service.BuySnack)
 	snackGroup.POST("/putaway", service.Putaway)

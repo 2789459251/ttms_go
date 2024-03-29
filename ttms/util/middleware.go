@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -41,10 +43,32 @@ func JWTAuth() gin.HandlerFunc {
 		}
 		// 将 claims 中的用户信息存储在 context 中
 		c.Set("userInfoId", claims.UserInfoId)
-
+		signed, err := RefreshToken(token)
+		if err != nil {
+			log.Printf("refresh token err:%v", err)
+		}
+		c.SetCookie("Authorization", signed, 60, "/", "127.0.0.1", false, true)
 		// 这里执行路由 HandlerFunc
 		c.Next()
 	}
+}
+func RefreshToken(token *jwt.Token) (string, error) {
+	claims, ok := token.Claims.(*AuthClaims)
+	if !ok {
+		return "", fmt.Errorf("failed to get claims!")
+	}
+	newExpiration := time.Now().Add(12 * time.Hour).Unix()
+	claims.StandardClaims.ExpiresAt = newExpiration
+	claims.ExpiresAt = newExpiration
+	// 创建一个新的令牌
+	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// 使用密钥进行签名
+	signedToken, err := newToken.SignedString(secretKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to sign token: %v", err)
+	}
+	return signedToken, nil
 }
 
 // ParseToken 解析请求头中的 token string，转换成被解析后的 jwt.Token
