@@ -19,7 +19,7 @@ var (
 
 func InitConfig() {
 	viper.SetConfigName("app")
-	viper.AddConfigPath("ttms/conf")
+	viper.AddConfigPath("conf")
 	err := viper.ReadInConfig()
 	if err != nil {
 		fmt.Println(err)

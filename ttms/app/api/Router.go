@@ -26,6 +26,9 @@ func Router() *gin.Engine {
 	snackGroup.GET("/getinfos", service.ShowSnacks) //查询零食列表
 	snackGroup.GET("/search", service.SearchSnack)  //搜索特定零食
 	snackGroup.GET("/query", service.Getdetail)
+	snackGroup.DELETE("/removeByid", service.Remove)
+	snackGroup.DELETE("/removeByNamekey", service.Removes)
+	snackGroup.GET("/uploadFavorite", service.UploadFavorite) //零食加入收藏
 
 	//票务操作
 

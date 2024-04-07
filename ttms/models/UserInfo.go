@@ -9,8 +9,9 @@ type UserInfo struct {
 	gorm.Model
 	Wallet float64
 	//Ticket []uint
-	Ticket []Ticket `gorm:"type:json"`
-	Snack  []Snack_ `gorm:"type:json"`
+	Ticket   []Ticket `gorm:"type:json"`
+	Snack    []Snack_ `gorm:"type:json"`
+	Favorite []int    `gorm:"type:json"`
 }
 
 func (user UserInfo) TableName() string {

@@ -41,7 +41,7 @@ func SearchSnack(name string) (snacks []Snack) {
 func Insertsnack(snack Snack) {
 	utils.DB.Create(&snack)
 }
-func Querysnack(id int) (s Snack) {
+func QuerysnackByid(id int) (s Snack) {
 	utils.DB.Where("id = ?", id).First(&s)
 	return
 }
@@ -61,4 +61,13 @@ func (s *Snack) UpdateStock(Func func() (err error)) {
 	if Func() != nil {
 		log.Println(fmt.Sprintln("更新操作有错误，事务回滚"))
 	}
+}
+
+func DeleteSnackByid(id int) error {
+	s := QuerysnackByid(id)
+	return utils.DB.Where("id = ?", id).Delete(s).Error
+}
+func DeleteSnackByNamekey(nameKey string) error {
+	snacks := SearchSnack(nameKey)
+	return utils.DB.Delete(snacks).Error
 }

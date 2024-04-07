@@ -3,7 +3,10 @@ package service
 import (
 	models2 "TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
+	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 	"strconv"
 )
@@ -15,7 +18,7 @@ func BuySnack(c *gin.Context) {
 	id, _ := strconv.Atoi(id_)
 	num, _ := strconv.Atoi(num_)
 
-	s := models2.Querysnack(id)
+	s := models2.QuerysnackByid(id)
 	// 读锁
 	stock := s.GetStock()
 
@@ -121,6 +124,74 @@ func Putaway(c *gin.Context) {
 func Getdetail(c *gin.Context) {
 	id_ := c.Query("id")
 	id, _ := strconv.Atoi(id_)
-	s := models2.Querysnack(id)
+	s := models2.QuerysnackByid(id)
 	utils.RespOk(c.Writer, s, "返回指定id零食")
+}
+
+// 下架按照id
+func Remove(c *gin.Context) {
+	id_ := c.Request.FormValue("id")
+	id, _ := strconv.Atoi(id_)
+	if id <= 0 {
+		utils.RespFail(c.Writer, fmt.Sprintf("输入id:%v无效", id_))
+		return
+	}
+	if err := models2.DeleteSnackByid(id); err != nil {
+		utils.RespFail(c.Writer, "下架商品出错，请联系系统维护人员")
+		return
+	}
+	utils.RespOk(c.Writer, id, "下架成功")
+}
+
+// 按照姓名关键字模糊删除
+func Removes(c *gin.Context) {
+	namekey := c.Request.FormValue("namekey")
+	if err := models2.DeleteSnackByNamekey(namekey); err != nil {
+		utils.RespFail(c.Writer, "下架商品出错，请联系系统维护人员")
+		return
+	}
+
+	utils.RespOk(c.Writer, namekey, "下架成功")
+}
+
+func UploadFavorite(c *gin.Context) {
+	_, userInfo := User(c)
+
+	var flag bool
+	snack_id := c.Request.FormValue("snack_id")
+	key1 := utils.Snack_user_favirite_set + ":" + snack_id //一个零食受收藏人群
+	userid := strconv.Itoa(int(userInfo.ID))
+	key2 := utils.User_snack_favorite_set + ":" + userid //一个用户收藏的零食
+
+	// 开始 Redis 事务
+	err := utils.Red.Watch(context.Background(), func(tx *redis.Tx) error {
+		flagCmd := tx.SIsMember(context.Background(), key1, userInfo.ID)
+
+		// 根据用户是否已收藏决定添加或删除操作
+		flag, _ = flagCmd.Result()
+
+		if flag {
+			tx.SRem(context.Background(), key1, userInfo.ID)
+			tx.SRem(context.Background(), key2, snack_id)
+		} else {
+			tx.SAdd(context.Background(), key1, userInfo.ID)
+			tx.SAdd(context.Background(), key2, snack_id)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		utils.RespFail(c.Writer, "收藏零食："+err.Error())
+		return
+	}
+
+	// 获取收藏数量
+	num, _ := utils.Red.SCard(context.Background(), key1).Result()
+
+	if flag {
+		utils.RespOk(c.Writer, num, "您已取消对"+snack_id+"的收藏,data显示零食的收藏量")
+	} else {
+		utils.RespOk(c.Writer, num, "您收藏了"+snack_id+"的零食，可以在收藏夹中查看,data显示零食的收藏量")
+	}
 }
