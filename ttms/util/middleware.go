@@ -73,7 +73,7 @@ func RefreshToken(token *jwt.Token) (string, error) {
 
 // ParseToken 解析请求头中的 token string，转换成被解析后的 jwt.Token
 func ParseToken(tokenStr string) (*jwt.Token, error) {
-	// 解析 token string 拿到 token jwt.Token
+	// 解析 token string 拿到 token Jwt.Token
 	return jwt.ParseWithClaims(tokenStr, &AuthClaims{}, func(tk *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})

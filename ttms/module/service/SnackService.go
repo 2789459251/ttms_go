@@ -88,8 +88,12 @@ func SearchSnack(c *gin.Context) {
 	utils.RespOk(c.Writer, snack, "返回相关零食")
 }
 
-// 上架零食
+// 上架零食 + 更新信息
 func Putaway(c *gin.Context) {
+	if models2.SearchSnack(c.Request.FormValue("name")) != nil {
+		utils.RespFail(c.Writer, "您上架的零食已存在，请重新上传")
+		return
+	}
 	r := c.Request
 	w := c.Writer
 	url, err := upload(r, w, c)
@@ -97,6 +101,7 @@ func Putaway(c *gin.Context) {
 		utils.RespFail(c.Writer, err.Error())
 		return
 	}
+
 	stock, _ := strconv.Atoi(c.Request.FormValue("stock"))
 	price, _ := strconv.ParseFloat(c.Request.FormValue("price"), 64)
 	snack := models2.Snack{
@@ -194,4 +199,17 @@ func UploadFavorite(c *gin.Context) {
 	} else {
 		utils.RespOk(c.Writer, num, "您收藏了"+snack_id+"的零食，可以在收藏夹中查看,data显示零食的收藏量")
 	}
+}
+func UpdateSnack(c *gin.Context) {
+	//snack_id := c.Request.FormValue("snack_id")
+	//snack_id_, _ := strconv.Atoi(snack_id)
+	//s := models2.QuerysnackByid(snack_id_)
+	//if s.Name == "" {
+	//	utils.RespFail(c.Writer, "id传入无效")
+	//	return
+	//}
+	//s.
+	//if name := c.Request.FormValue("Name");name != nil{
+	//	s.Name = name
+	//}
 }

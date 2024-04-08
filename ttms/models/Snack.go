@@ -71,3 +71,6 @@ func DeleteSnackByNamekey(nameKey string) error {
 	snacks := SearchSnack(nameKey)
 	return utils.DB.Delete(snacks).Error
 }
+func (s *Snack) RefreshSnack() {
+
+}
