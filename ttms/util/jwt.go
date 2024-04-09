@@ -35,6 +35,7 @@ func InitAuth() (*JWTMiddleware, error) {
 }
 
 func (jm *JWTMiddleware) GenerateTokens(user string) (string, string, int64) {
+	fmt.Println("ggg:", user)
 	fmt.Println(jm.Timeout)
 	aT := Claims{user, jwt.StandardClaims{
 		Issuer:    "Zy",
@@ -124,6 +125,7 @@ func (jm *JWTMiddleware) JWTAuthMiddleware() gin.HandlerFunc {
 			RespFail(c.Writer, "access令牌失效")
 			return
 		}
+		fmt.Println("ppp:", parseToken.User)
 		c.Set("userInfo", parseToken.User)
 		c.Next()
 	}

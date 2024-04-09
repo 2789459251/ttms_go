@@ -46,7 +46,7 @@ func BuySnack(c *gin.Context) {
 		err = utils.DB.Transaction(
 			func(tx *gorm.DB) (err error) {
 				// 进行数据库操作
-				if err := user.RefleshUserInfo(); err != nil {
+				if err := user.RefleshUserInfo_(); err != nil {
 					// 发生错误，进行回滚
 					tx.Rollback()
 					return err
@@ -90,6 +90,11 @@ func SearchSnack(c *gin.Context) {
 
 // 上架零食 + 更新信息
 func Putaway(c *gin.Context) {
+	user := User(c)
+	if user.Flag == 0 {
+		utils.RespFail(c.Writer, "权限不够")
+		return
+	}
 	if len(models2.SearchSnack(c.Request.FormValue("name"))) != 0 {
 		utils.RespFail(c.Writer, "您上架的零食已存在，请重新上传")
 		return
@@ -136,6 +141,11 @@ func Getdetail(c *gin.Context) {
 
 // 下架按照id
 func Remove(c *gin.Context) {
+	user := User(c)
+	if user.Flag == 0 {
+		utils.RespFail(c.Writer, "权限不够")
+		return
+	}
 	id_ := c.Request.FormValue("id")
 	id, _ := strconv.Atoi(id_)
 	if id <= 0 {
@@ -151,6 +161,11 @@ func Remove(c *gin.Context) {
 
 // 按照姓名关键字模糊删除
 func Removes(c *gin.Context) {
+	user := User(c)
+	if user.Flag == 0 {
+		utils.RespFail(c.Writer, "权限不够")
+		return
+	}
 	namekey := c.Request.FormValue("namekey")
 	if err := models2.DeleteSnackByNamekey(namekey); err != nil {
 		utils.RespFail(c.Writer, "下架商品出错，请联系系统维护人员")
@@ -203,20 +218,25 @@ func UploadFavorite(c *gin.Context) {
 }
 
 func Recover(c *gin.Context) {
+
+	user := User(c)
+	if user.Flag == 0 {
+		utils.RespFail(c.Writer, "权限不够")
+		return
+	}
 	utils.DB.Exec("UPDATE `snack_basic` SET `deleted_at`= NULL WHERE `deleted_at` IS NOT NULL")
 	utils.RespOk(c.Writer, nil, "ok")
 }
 
-func UpdateSnack(c *gin.Context) {
-	//snack_id := c.Request.FormValue("snack_id")
-	//snack_id_, _ := strconv.Atoi(snack_id)
-	//s := models2.QuerysnackByid(snack_id_)
-	//if s.Name == "" {
-	//	utils.RespFail(c.Writer, "id传入无效")
-	//	return
-	//}
-	//s.
-	//if name := c.Request.FormValue("Name");name != nil{
-	//	s.Name = name
-	//}
-}
+//func UpdateSnack(c *gin.Context) {
+//	snack_id := c.Request.FormValue("snack_id")
+//	snack_id_, _ := strconv.Atoi(snack_id)
+//	s := models2.QuerysnackByid(snack_id_)
+//	if s.Name == "" {
+//		utils.RespFail(c.Writer, "id传入无效")
+//		return
+//	}
+//	if name := c.Request.FormValue("Name");name != nil{
+//		s.Name = name
+//	}
+//}

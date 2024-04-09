@@ -5,6 +5,7 @@ import (
 	utils "TTMS_go/ttms/util"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"net/http"
 	"strconv"
 	"time"
@@ -208,4 +209,25 @@ func ResetPassword(c *gin.Context) {
 		"message": "重置成功",
 		"data":    nil,
 	})
+}
+
+// 升级-->管理端
+func Admin(c *gin.Context) {
+	key := c.Request.FormValue("key")
+	if key != viper.GetString("root.key") {
+		utils.RespFail(c.Writer, "密钥错误")
+		return
+	}
+	id_ := c.Request.FormValue("id")
+	user := models.FindUserByUserInfoId(id_).UserInfo
+	user.Flag = 1
+	//err := user.RefleshUserInfo_()
+	//if err != nil {
+	//	utils.RespFail(c.Writer, "升级失败:"+err.Error())
+	//	return
+	//}
+	utils.DB.Exec("Update user_info set flag=1 where id=?", id_)
+	fmt.Println(user.Flag)
+	utils.RespOk(c.Writer, user, "升级成功，您可以执行管理员的任务了")
+	return
 }

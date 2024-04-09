@@ -14,3 +14,5 @@ jwt:
   RKey: "zsy_Rkey"
   Timeout: 300
   MaxRefresh: 86400
+root:
+  Key: "asdfghjkl"

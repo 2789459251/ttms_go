@@ -68,7 +68,7 @@ func signed(user models2.User, c *gin.Context) bool {
 	if err != nil {
 		return false
 	}
-	id := strconv.Itoa(int(user.UserInfo.ID))
+	id := strconv.Itoa(user.UserInfoId)
 	rT, aT, _ := jwt.GenerateTokens(id)
 	c.Header("Authorization", "Bearer "+aT)
 	c.SetCookie("refresh_token", rT, 3600, "/", "localhost", false, true)
@@ -77,7 +77,10 @@ func signed(user models2.User, c *gin.Context) bool {
 
 func User(c *gin.Context) models2.UserInfo {
 	userinfoid, _ := c.Get("userInfo")
-	userinfo := models2.FindUserByUserInfoId(userinfoid.(string)).UserInfo
+	user := models2.FindUserByUserInfoId(userinfoid.(string))
+	fmt.Println(user)
+	userinfo := models2.FindUserInfo(userinfoid.(string))
+	fmt.Println("fffff", userinfo.Flag)
 	return userinfo
 }
 

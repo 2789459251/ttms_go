@@ -21,9 +21,10 @@ func (table *User) TableName() string {
 }
 func CreateUser(user User) *gorm.DB {
 	userInfo := UserInfo{}
-	user.UserInfoId = int(user.ID)
+
 	//Todo: 这里的user.userInfoId应该让userinfo创建结束后赋值,但是也必须考虑token中userInfoId
 	utils.DB.Create(&userInfo)
+	user.UserInfoId = int(userInfo.ID)
 	user.UserInfo = userInfo
 	return utils.DB.Create(&user)
 }
@@ -44,7 +45,7 @@ func EditUserPassword(password, phone string) {
 }
 func FindUserByUserInfoId(id string) User {
 	user := User{}
-	utils.DB.Where("user_info_id?", id).First(&user)
+	utils.DB.Where("user_info_id = ?", id).First(&user)
 	return user
 }
 func RefreshUserInfo(id string, userInfo UserInfo) {

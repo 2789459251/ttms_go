@@ -9,6 +9,9 @@ func main() {
 	utils.InitConfig()
 	utils.InitMysql()
 	utils.InitRedis()
+	//utils.DB.Migrator().DropTable(models2.User{})
+	//utils.DB.Migrator().DropTable(models2.UserInfo{})
+	//
 	//utils.DB.AutoMigrate(models2.User{})
 	//utils.DB.AutoMigrate(models2.UserInfo{})
 	////utils.DB.AutoMigrate(models2.Ticket{})
