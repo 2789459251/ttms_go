@@ -26,7 +26,7 @@ func Router() *gin.Engine {
 	//零食操作
 	snackGroup.POST("/buy", service.BuySnack)                 //购买
 	snackGroup.POST("/putaway", service.Putaway)              //上架
-	snackGroup.GET("/getinfos", service.ShowSnacks)           //查询零食列表
+	snackGroup.GET("/getsnackList", service.ShowSnacks)       //查询零食列表
 	snackGroup.GET("/search", service.SearchSnack)            //搜索特定零食
 	snackGroup.GET("/query", service.Getdetail)               //根据id查询
 	snackGroup.DELETE("/removeByid", service.Remove)          //下架by——id

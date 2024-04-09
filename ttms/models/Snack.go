@@ -32,7 +32,7 @@ func SearchSnack(name string) (snacks []Snack) {
 		if i == 0 {
 			str += "name LIKE '%" + c + "%'"
 		} else {
-			str += " AND name LIKE '%" + c + "%'"
+			str += " OR name LIKE '%" + c + "%'"
 		}
 	}
 	utils.DB.Where(str).Find(&snacks)
@@ -65,7 +65,9 @@ func (s *Snack) UpdateStock(Func func() (err error)) {
 
 func DeleteSnackByid(id int) error {
 	s := QuerysnackByid(id)
-	return utils.DB.Where("id = ?", id).Delete(s).Error
+	ss := []Snack{}
+	ss = append(ss, s)
+	return utils.DB.Delete(ss).Error
 }
 func DeleteSnackByNamekey(nameKey string) error {
 	snacks := SearchSnack(nameKey)
