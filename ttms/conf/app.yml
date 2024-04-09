@@ -10,7 +10,7 @@ qiniu:
   QiniuAK: "C5IdEtxZFLx0oS9iY8C1yrS6rLYnfzB4XV8rt4HU"
   QiniuSk: "MpTfRFklA1fWfmym2YhSxebykuxmi6SoBCFOd1Y4"
 jwt:
-  AKey:
-  RKey:
-  Timeout:
-  MaxRefresh:
+  AKey: "zsy_Akey"
+  RKey: "zsy_Rkey"
+  Timeout: 300
+  MaxRefresh: 86400

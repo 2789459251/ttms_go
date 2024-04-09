@@ -12,7 +12,7 @@ import (
 )
 
 func BuySnack(c *gin.Context) {
-	_, user := User(c)
+	user := User(c)
 	id_ := c.Request.FormValue("id")
 	num_ := c.Request.FormValue("num")
 	id, _ := strconv.Atoi(id_)
@@ -90,7 +90,7 @@ func SearchSnack(c *gin.Context) {
 
 // 上架零食 + 更新信息
 func Putaway(c *gin.Context) {
-	if models2.SearchSnack(c.Request.FormValue("name")) != nil {
+	if len(models2.SearchSnack(c.Request.FormValue("name"))) != 0 {
 		utils.RespFail(c.Writer, "您上架的零食已存在，请重新上传")
 		return
 	}
@@ -126,6 +126,7 @@ func Putaway(c *gin.Context) {
 	models2.Insertsnack(snack)
 	utils.RespOk(c.Writer, snack, snack.Name+"已上架")
 }
+
 func Getdetail(c *gin.Context) {
 	id_ := c.Query("id")
 	id, _ := strconv.Atoi(id_)
@@ -160,7 +161,7 @@ func Removes(c *gin.Context) {
 }
 
 func UploadFavorite(c *gin.Context) {
-	_, userInfo := User(c)
+	userInfo := User(c)
 
 	var flag bool
 	snack_id := c.Request.FormValue("snack_id")
@@ -200,6 +201,7 @@ func UploadFavorite(c *gin.Context) {
 		utils.RespOk(c.Writer, num, "您收藏了"+snack_id+"的零食，可以在收藏夹中查看,data显示零食的收藏量")
 	}
 }
+
 func UpdateSnack(c *gin.Context) {
 	//snack_id := c.Request.FormValue("snack_id")
 	//snack_id_, _ := strconv.Atoi(snack_id)

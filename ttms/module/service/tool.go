@@ -9,11 +9,9 @@ import (
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
 	"github.com/qiniu/go-sdk/v7/storage"
 	"github.com/spf13/viper"
-	"math/rand"
 	"net/http"
 	"regexp"
 	"strconv"
-	"time"
 )
 
 const url_ = "http://sb1cf9mjk.hb-bkt.clouddn.com/"
@@ -66,46 +64,23 @@ func isStrongPassword(password string) bool {
 }
 
 func signed(user models2.User, c *gin.Context) bool {
-	// 查询数据库，通过用户密码拿到 userId
-	userId := user.ID
-	// token 过期时间 12 h，Time 类型
-	var expiredTime = time.Now().Add(12 * time.Hour)
-
-	// 生成 token string
-	tokenStr, tokenErr := utils.GenerateToken(uint64(userId), expiredTime)
-	if tokenErr != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code":    -1,
-			"message": "未能生成令牌token",
-			"data":    nil,
-		})
+	jwt, err := utils.InitAuth()
+	if err != nil {
 		return false
 	}
-	// 设置响应头信息的 token
-	c.SetCookie("Authorization", tokenStr, 60, "/", "127.0.0.1", false, true)
+	id := strconv.Itoa(int(user.UserInfo.ID))
+	rT, aT, _ := jwt.GenerateTokens(id)
+	c.Header("Authorization", "Bearer "+aT)
+	c.SetCookie("refresh_token", rT, 3600, "/", "localhost", false, true)
 	return true
 }
 
-func rands() string {
-	rand.Seed(int64(time.Now().UnixNano()))
-	return strconv.Itoa(int(rand.Int31n(2) + 1))
+func User(c *gin.Context) models2.UserInfo {
+	userinfoid, _ := c.Get("userInfo")
+	userinfo := models2.FindUserByUserInfoId(userinfoid.(string)).UserInfo
+	return userinfo
 }
 
-func token(c *gin.Context) string {
-	authHeader, _ := c.Cookie("Authorization")
-	if authHeader == "" {
-		utils.RespFail(c.Writer, "没有token信息")
-	}
-	return authHeader
-}
-
-// Todo 刷新token的操作
-func User(c *gin.Context) (models2.User, models2.UserInfo) {
-	id, _ := c.Get("userInfoId")
-	user := models2.FindUserById(strconv.Itoa(int(id.(uint64))))
-	userinfo := models2.FindUserInfo(strconv.Itoa(user.UserInfoId))
-	return user, userinfo
-}
 func upload(r *http.Request, w http.ResponseWriter, c *gin.Context) (string, error) {
 	putPolicy := storage.PutPolicy{Scope: viper.GetString("qiniu.Scope")}
 	mac := qbox.NewMac(viper.GetString("qiniu.QiniuAK"), viper.GetString("qiniu.QiniuSK"))
@@ -113,12 +88,14 @@ func upload(r *http.Request, w http.ResponseWriter, c *gin.Context) (string, err
 
 	cfg := storage.Config{Zone: &storage.ZoneHuabei, UseHTTPS: false, UseCdnDomains: false}
 	file, head, err := r.FormFile("picture")
+	if err != nil {
+		utils.RespFail(c.Writer, "文件读取失败："+err.Error())
+	}
 	fmt.Println(head.Header)
 	formUploader := storage.NewFormUploader(&cfg)
 	ret := storage.PutRet{}
 	putExtra := storage.PutExtra{}
-	fmt.Println(head.Header)
 	fmt.Println(head.Size)
-	err = formUploader.Put(context.Background(), &ret, upTocken, "", file, head.Size, &putExtra)
+	err = formUploader.Put(context.Background(), &ret, upTocken, head.Filename, file, head.Size, &putExtra)
 	return url_ + ret.Key, err
 }

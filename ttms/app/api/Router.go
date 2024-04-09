@@ -2,10 +2,12 @@ package router
 
 import (
 	"TTMS_go/ttms/module/service"
+	utils "TTMS_go/ttms/util"
 	"github.com/gin-gonic/gin"
 )
 
 func Router() *gin.Engine {
+	jwtMiddleware, _ := utils.InitAuth()
 	r := gin.Default()
 	r.Static("/Asset", "Asset/")
 
@@ -16,9 +18,11 @@ func Router() *gin.Engine {
 	userGroup.POST("/sendCode", service.SendCode)
 	userGroup.POST("/loginByCode", service.LoginByCode)
 	userGroup.POST("/resetPassword", service.ResetPassword)
-
+	userGroup.GET("/refreshToken", jwtMiddleware.RefreshHandler)
+	//登出
+	//userGroup.GET("/logout",service.Logout)
 	snackGroup := r.Group("/snack/api")
-	//snackGroup.Use(utils.JWTAuth())
+	snackGroup.Use(jwtMiddleware.JWTAuthMiddleware())
 	//零食操作
 	snackGroup.POST("/buy", service.BuySnack)                 //购买
 	snackGroup.POST("/putaway", service.Putaway)              //上架
