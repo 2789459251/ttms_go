@@ -202,6 +202,11 @@ func UploadFavorite(c *gin.Context) {
 	}
 }
 
+func Recover(c *gin.Context) {
+	utils.DB.Exec("UPDATE `snack_basic` SET `deleted_at`= NULL WHERE `deleted_at` IS NOT NULL")
+	utils.RespOk(c.Writer, nil, "ok")
+}
+
 func UpdateSnack(c *gin.Context) {
 	//snack_id := c.Request.FormValue("snack_id")
 	//snack_id_, _ := strconv.Atoi(snack_id)
