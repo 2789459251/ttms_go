@@ -77,10 +77,7 @@ func signed(user models2.User, c *gin.Context) bool {
 
 func User(c *gin.Context) models2.UserInfo {
 	userinfoid, _ := c.Get("userInfo")
-	user := models2.FindUserByUserInfoId(userinfoid.(string))
-	fmt.Println(user)
 	userinfo := models2.FindUserInfo(userinfoid.(string))
-	fmt.Println("fffff", userinfo.Flag)
 	return userinfo
 }
 
