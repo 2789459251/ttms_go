@@ -40,6 +40,6 @@ func MovieList(c *gin.Context) {
 }
 
 func Upcoming(c *gin.Context) {
-	m := models.Upcomming_List()
+	m := models.UpcommingList()
 	utils.RespOk(c.Writer, m, "返回待映电影")
 }

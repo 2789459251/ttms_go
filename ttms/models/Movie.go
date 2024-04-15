@@ -33,7 +33,7 @@ func MovieList() []Movie {
 	return m
 }
 
-func Upcomming_List() []Movie {
+func UpcommingList() []Movie {
 	m := []Movie{}
 	utils.DB.Order("release_time ASC").Where("release_time  > ?", time.Now()).Find(&m)
 	return m
