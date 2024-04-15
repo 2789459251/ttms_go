@@ -42,6 +42,7 @@ func Router() *gin.Engine {
 	movieGroup.GET("/movieList", service.MovieList)
 	movieGroup.GET("/upcoming/movieList", service.Upcoming)
 	movieGroup.GET("/hit/movieList", service.Hit)
+	movieGroup.DELETE("/deletemoviesByid", service.DeleteMovies)
 	//充值操作
 	return r
 }

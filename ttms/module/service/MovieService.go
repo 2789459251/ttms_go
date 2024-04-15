@@ -4,6 +4,7 @@ import (
 	"TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
 	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 //	type Movie struct {
@@ -47,4 +48,10 @@ func Upcoming(c *gin.Context) {
 func Hit(c *gin.Context) {
 	m := models.HitList()
 	utils.RespOk(c.Writer, m, "返回热映电影")
+}
+
+func DeleteMovies(c *gin.Context) {
+	id := c.Query("id")
+	ids := strings.Split(id, " ")
+	models.DeleteMovieById(ids)
 }
