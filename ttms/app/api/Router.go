@@ -35,8 +35,10 @@ func Router() *gin.Engine {
 	snackGroup.PUT("/uploadFavorite", service.UploadFavorite) //零食加入收藏
 	//snackGroup.PUT("/updeteSnack", service.UpdateSnack)       //修改零食信息 1
 	snackGroup.PUT("/recover", service.Recover) //一键修复删除信息 1
-	//票务操作
 
+	//票务操作
+	movieGroup := r.Group("/movie/api")
+	movieGroup.POST("/addMovie", service.AddMovie)
 	//充值操作
 	return r
 }

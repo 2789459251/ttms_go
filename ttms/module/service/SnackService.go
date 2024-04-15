@@ -228,15 +228,16 @@ func Recover(c *gin.Context) {
 	utils.RespOk(c.Writer, nil, "ok")
 }
 
-//func UpdateSnack(c *gin.Context) {
-//	snack_id := c.Request.FormValue("snack_id")
-//	snack_id_, _ := strconv.Atoi(snack_id)
-//	s := models2.QuerysnackByid(snack_id_)
-//	if s.Name == "" {
-//		utils.RespFail(c.Writer, "id传入无效")
-//		return
-//	}
-//	if name := c.Request.FormValue("Name");name != nil{
-//		s.Name = name
-//	}
-//}
+func UpdateSnack(c *gin.Context) {
+	//todo 文件待开发，加入ES存储功能
+	//snack_id := c.Request.FormValue("snack_id")
+	//snack_id_, _ := strconv.Atoi(snack_id)
+	//s := models2.QuerysnackByid(snack_id_)
+	//if s.Name == "" {
+	//	utils.RespFail(c.Writer, "id传入无效")
+	//	return
+	//}
+	//if name := c.Request.FormValue("Name"); name != nil {
+	//	s.Name = name
+	//}
+}
