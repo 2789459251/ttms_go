@@ -38,3 +38,9 @@ func UpcommingList() []Movie {
 	utils.DB.Order("release_time ASC").Where("release_time  > ?", time.Now()).Find(&m)
 	return m
 }
+
+func HitList() []Movie {
+	m := []Movie{}
+	utils.DB.Order("score ASC").Where("release_time < ?", time.Now()).Find(&m)
+	return m
+}

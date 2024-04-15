@@ -40,7 +40,8 @@ func Router() *gin.Engine {
 	movieGroup := r.Group("/movie/api")
 	movieGroup.POST("/addMovie", service.AddMovie)
 	movieGroup.GET("/movieList", service.MovieList)
-	movieGroup.DELETE("/upcoming/movieList", service.Upcoming)
+	movieGroup.GET("/upcoming/movieList", service.Upcoming)
+	movieGroup.GET("/hit/movieList", service.Hit)
 	//充值操作
 	return r
 }

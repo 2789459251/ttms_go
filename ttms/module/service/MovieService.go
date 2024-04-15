@@ -43,3 +43,8 @@ func Upcoming(c *gin.Context) {
 	m := models.UpcommingList()
 	utils.RespOk(c.Writer, m, "返回待映电影")
 }
+
+func Hit(c *gin.Context) {
+	m := models.HitList()
+	utils.RespOk(c.Writer, m, "返回热映电影")
+}
