@@ -26,3 +26,15 @@ func Update(m Movie) {
 	utils.DB.Where("name = ?", m.Name).Find(&m)
 	utils.DB.Save(&m)
 }
+
+func MovieList() []Movie {
+	m := []Movie{}
+	utils.DB.Find(m)
+	return m
+}
+
+func Upcomming_List() []Movie {
+	m := []Movie{}
+	utils.DB.Order("release_time ASC").Where("release_time  > ?", time.Now()).Find(&m)
+	return m
+}

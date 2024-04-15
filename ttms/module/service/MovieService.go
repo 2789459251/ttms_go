@@ -12,7 +12,7 @@ import (
 //		Name     string
 //		Director string
 //		Actor    string
-//		Score    float64
+//		Score    float64	//todo 评分
 //		Duration time.Duration
 //		ReleaseTime time.Time
 //		Money    float64
@@ -22,6 +22,7 @@ func AddMovie(c *gin.Context) {
 		Name:        c.Request.FormValue("name"),
 		Director:    c.Request.FormValue("director"),
 		Money:       float64(c.GetFloat64("money")),
+		Info:        c.Request.FormValue("info"),
 		Duration:    c.GetDuration("duration"),
 		ReleaseTime: c.GetTime("release_time"),
 	}
@@ -31,4 +32,14 @@ func AddMovie(c *gin.Context) {
 
 	models.Update(movie)
 	utils.RespOk(c.Writer, movie, "电影上架成功")
+}
+
+func MovieList(c *gin.Context) {
+	m := models.MovieList()
+	utils.RespOk(c.Writer, m, "返回所有电影")
+}
+
+func Upcoming(c *gin.Context) {
+	m := models.Upcomming_List()
+	utils.RespOk(c.Writer, m, "返回待映电影")
 }

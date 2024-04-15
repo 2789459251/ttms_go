@@ -39,6 +39,8 @@ func Router() *gin.Engine {
 	//票务操作
 	movieGroup := r.Group("/movie/api")
 	movieGroup.POST("/addMovie", service.AddMovie)
+	movieGroup.GET("/movieList", service.MovieList)
+	movieGroup.DELETE("/upcoming/movieList", service.Upcoming)
 	//充值操作
 	return r
 }
