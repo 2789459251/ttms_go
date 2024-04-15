@@ -38,6 +38,7 @@ func Router() *gin.Engine {
 
 	//票务操作
 	movieGroup := r.Group("/movie/api")
+	movieGroup.Use(jwtMiddleware.JWTAuthMiddleware())
 	movieGroup.POST("/addMovie", service.AddMovie)
 	movieGroup.GET("/movieList", service.MovieList)
 	movieGroup.GET("/upcoming/movieList", service.Upcoming)

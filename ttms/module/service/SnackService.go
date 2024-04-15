@@ -90,9 +90,7 @@ func SearchSnack(c *gin.Context) {
 
 // 上架零食 + 更新信息
 func Putaway(c *gin.Context) {
-	user := User(c)
-	if user.Flag == 0 {
-		utils.RespFail(c.Writer, "权限不够")
+	if !isLimited(c) {
 		return
 	}
 	if len(models2.SearchSnack(c.Request.FormValue("name"))) != 0 {
@@ -141,9 +139,7 @@ func Getdetail(c *gin.Context) {
 
 // 下架按照id
 func Remove(c *gin.Context) {
-	user := User(c)
-	if user.Flag == 0 {
-		utils.RespFail(c.Writer, "权限不够")
+	if !isLimited(c) {
 		return
 	}
 	id_ := c.Request.FormValue("id")
@@ -161,9 +157,7 @@ func Remove(c *gin.Context) {
 
 // 按照姓名关键字模糊删除
 func Removes(c *gin.Context) {
-	user := User(c)
-	if user.Flag == 0 {
-		utils.RespFail(c.Writer, "权限不够")
+	if !isLimited(c) {
 		return
 	}
 	namekey := c.Request.FormValue("namekey")
@@ -219,9 +213,7 @@ func UploadFavorite(c *gin.Context) {
 
 func Recover(c *gin.Context) {
 
-	user := User(c)
-	if user.Flag == 0 {
-		utils.RespFail(c.Writer, "权限不够")
+	if !isLimited(c) {
 		return
 	}
 	utils.DB.Exec("UPDATE `snack_basic` SET `deleted_at`= NULL WHERE `deleted_at` IS NOT NULL")

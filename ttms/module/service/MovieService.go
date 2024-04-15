@@ -19,6 +19,9 @@ import (
 //		Money    float64
 //	}
 func AddMovie(c *gin.Context) {
+	if !isLimited(c) {
+		return
+	}
 	movie := models.Movie{
 		Name:        c.Request.FormValue("name"),
 		Director:    c.Request.FormValue("director"),
@@ -51,6 +54,9 @@ func Hit(c *gin.Context) {
 }
 
 func DeleteMovies(c *gin.Context) {
+	if !isLimited(c) {
+		return
+	}
 	id := c.Query("id")
 	ids := strings.Split(id, " ")
 	models.DeleteMovieById(ids)

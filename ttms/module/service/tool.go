@@ -99,3 +99,12 @@ func upload(r *http.Request, w http.ResponseWriter, c *gin.Context) (string, err
 	err = formUploader.Put(context.Background(), &ret, upTocken, head.Filename, file, head.Size, &putExtra)
 	return url_ + ret.Key, err
 }
+
+func isLimited(c *gin.Context) bool {
+	user := User(c)
+	if user.Flag == 0 {
+		utils.RespFail(c.Writer, "权限不够")
+		return false
+	}
+	return true
+}
