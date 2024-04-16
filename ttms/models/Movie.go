@@ -66,7 +66,7 @@ func DeleteMovieById(ids []string) {
 	utils.DB.Where("id in (?)", ids).Delete(&Movie{})
 }
 
-func FavoriteRankingMovies(members []redis.Z) []byte {
+func RankingMovies(members []redis.Z) []byte {
 	str := []byte{}
 	type movieInfo struct {
 		m     Movie
@@ -85,6 +85,7 @@ func FavoriteRankingMovies(members []redis.Z) []byte {
 func UpdateMovieMark(m Movie, IMDbScore int, key string, movieId string) Movie {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	//todo 事务
 	if err := utils.Red.ZScore(context.Background(), key, movieId).Err(); err != nil {
 		//没评价过
 		if err == redis.Nil {
@@ -102,6 +103,8 @@ func UpdateMovieMark(m Movie, IMDbScore int, key string, movieId string) Movie {
 		m.Average = float64(m.Total) / float64(m.Count)
 	}
 	utils.Red.ZAdd(context.Background(), key, &redis.Z{Member: movieId, Score: float64(IMDbScore)})
+	mykey := utils.Movie_Average_set
+	utils.Red.ZAdd(context.Background(), mykey, &redis.Z{Member: movieId, Score: float64(m.Average)})
 	Update(m)
 	return m
 }

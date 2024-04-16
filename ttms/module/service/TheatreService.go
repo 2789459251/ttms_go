@@ -200,15 +200,20 @@ func FavoriteMovieList(c *gin.Context) {
 }
 func FavoriteMovieRanking(c *gin.Context) {
 	key := utils.Movie_ranking_sorted_set
-	members, _ := utils.Red.ZRevRangeWithScores(context.Background(), key, 0, 9).Result()
-	m := models.FavoriteRankingMovies(members)
+	members, _ := utils.Red.ZRevRangeByScoreWithScores(context.Background(), key, &redis.ZRangeBy{
+		Min:    "-inf",
+		Max:    "+inf",
+		Offset: 0,
+		Count:  10,
+	}).Result()
+	m := models.RankingMovies(members)
 	utils.RespOk(c.Writer, string(m), "获取到收藏前十的电影，及其收藏数量。")
 }
 
 // Total       int     `json:"total"`   // 电影的总分
 // Count       int     `json:"count"`   // 评分人数
 // Average     float64 `json:"average"` // 平均分
-// 打分	电影 评分 人数 每个人应该评论只有一次评分计算机会
+// 打分	电影 评分 人数 每个人应该评论只有一次评分计算机会,不考虑错误输入
 func MarkMovie(c *gin.Context) {
 	user := User(c)
 	userId := strconv.Itoa(int(user.ID))
@@ -219,4 +224,16 @@ func MarkMovie(c *gin.Context) {
 	m := models.FindMovieByid(movieId)
 	m = models.UpdateMovieMark(m, IMDbScore, key, movieId)
 	utils.RespOk(c.Writer, m, "评价完成")
+}
+func AverageMovieRanking(c *gin.Context) {
+	key := utils.Movie_Average_set
+	members, _ := utils.Red.ZRevRangeByScoreWithScores(context.Background(), key,
+		&redis.ZRangeBy{
+			Min:    "-inf",
+			Max:    "+inf",
+			Offset: 0,
+			Count:  10,
+		}).Result()
+	result := models.RankingMovies(members)
+	utils.RespOk(c.Writer, string(result), "获取到评分前十条电影，及其评分")
 }
