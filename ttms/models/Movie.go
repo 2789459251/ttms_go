@@ -2,7 +2,9 @@ package models
 
 import (
 	utils "TTMS_go/ttms/util"
+	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 	"sync"
@@ -16,10 +18,12 @@ type Movie struct {
 	Name        string
 	Director    string
 	Actor       string
-	Score       float64
 	Duration    time.Duration
 	ReleaseTime time.Time
 	Money       float64
+	Total       int     `json:"total"`   // 电影的总分
+	Count       int     `json:"count"`   // 评分人数
+	Average     float64 `json:"average"` // 平均分
 	mu          sync.RWMutex
 }
 
@@ -76,4 +80,28 @@ func FavoriteRankingMovies(members []redis.Z) []byte {
 		str = append(str, t...)
 	}
 	return str
+}
+
+func UpdateMovieMark(m Movie, IMDbScore int, key string, movieId string) Movie {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if err := utils.Red.ZScore(context.Background(), key, movieId).Err(); err != nil {
+		//没评价过
+		if err == redis.Nil {
+			m.Total += IMDbScore
+			m.Count++
+			m.Average = float64(m.Total) / float64(m.Count)
+		} else {
+			fmt.Errorf("查询用户评分出现错误，err:%v", err.Error())
+		}
+
+	} else {
+		//评价过
+		score, _ := utils.Red.ZScore(context.Background(), key, movieId).Result()
+		m.Total = m.Total - int(score) + IMDbScore
+		m.Average = float64(m.Total) / float64(m.Count)
+	}
+	utils.Red.ZAdd(context.Background(), key, &redis.Z{Member: movieId, Score: float64(IMDbScore)})
+	Update(m)
+	return m
 }

@@ -204,3 +204,19 @@ func FavoriteMovieRanking(c *gin.Context) {
 	m := models.FavoriteRankingMovies(members)
 	utils.RespOk(c.Writer, string(m), "获取到收藏前十的电影，及其收藏数量。")
 }
+
+// Total       int     `json:"total"`   // 电影的总分
+// Count       int     `json:"count"`   // 评分人数
+// Average     float64 `json:"average"` // 平均分
+// 打分	电影 评分 人数 每个人应该评论只有一次评分计算机会
+func MarkMovie(c *gin.Context) {
+	user := User(c)
+	userId := strconv.Itoa(int(user.ID))
+	movieId := c.Params.ByName("movie_id")      //json(movieid + num + sum )= member1
+	key := utils.User_Movie_marked_set + userId //key
+	star, _ := strconv.Atoi(c.Params.ByName("star"))
+	IMDbScore := (star * 2) - 1
+	m := models.FindMovieByid(movieId)
+	m = models.UpdateMovieMark(m, IMDbScore, key, movieId)
+	utils.RespOk(c.Writer, m, "评价完成")
+}

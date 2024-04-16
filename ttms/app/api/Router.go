@@ -11,7 +11,7 @@ func Router() *gin.Engine {
 	r := gin.Default()
 	r.Static("/Asset", "Asset/")
 
-	userGroup := r.Group("/user/api")
+	userGroup := r.Group("/user/api") //7
 	//用户登录注册
 	userGroup.POST("/createUser", service.CreateUser)
 	userGroup.POST("/loginByPassword", service.LoginByPassword)
@@ -22,7 +22,7 @@ func Router() *gin.Engine {
 	userGroup.PUT("/admin", service.Admin)
 	//登出
 	//userGroup.GET("/logout",service.Logout)
-	snackGroup := r.Group("/snack/api")
+	snackGroup := r.Group("/snack/api") //9
 	snackGroup.Use(jwtMiddleware.JWTAuthMiddleware())
 	//零食操作
 	snackGroup.POST("/buy", service.BuySnack)                 //购买
@@ -37,7 +37,7 @@ func Router() *gin.Engine {
 	snackGroup.PUT("/recover", service.Recover) //一键修复删除信息 1
 
 	//电影操作
-	movieGroup := r.Group("/movie/api")
+	movieGroup := r.Group("/movie/api") //5
 	movieGroup.Use(jwtMiddleware.JWTAuthMiddleware())
 	movieGroup.POST("/addMovie", service.AddMovie)
 	movieGroup.GET("/movieList", service.MovieList)
@@ -45,9 +45,8 @@ func Router() *gin.Engine {
 	movieGroup.GET("/hit/movieList", service.Hit)
 	movieGroup.DELETE("/deletemoviesByid", service.DeleteMovies)
 
-	//管理员
 	//theatre
-	theatreGroup := r.Group("/theatre/api")
+	theatreGroup := r.Group("/theatre/api") //9
 	theatreGroup.Use(jwtMiddleware.JWTAuthMiddleware())
 	theatreGroup.POST("/addTheatre", service.AddTheatre)
 	theatreGroup.POST("/addPlay", service.AddPlay)
@@ -59,7 +58,10 @@ func Router() *gin.Engine {
 	theatreGroup.GET("/favoriteList", service.FavoriteMovieList)     //用户的收藏
 	//收藏排行榜
 	theatreGroup.GET("/favoriteMovieRanking", service.FavoriteMovieRanking)
+	//评分
+	theatreGroup.PUT("/markMovie", service.MarkMovie)
 	//评分排行榜
+
 	//票房排行榜
 	//充值操作
 	return r
