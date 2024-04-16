@@ -4,6 +4,7 @@ import (
 	"TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"strconv"
@@ -140,7 +141,7 @@ func UploadFavoriteMovie(c *gin.Context) {
 	key1 := utils.Movie_user_favorite_set + movieId
 	id_ := strconv.Itoa(int(user.ID))
 	key2 := utils.User_Movie_favorite_set + id_
-
+	key3 := utils.Movie_ranking_sorted_set
 	err := utils.Red.Watch(context.Background(), func(tx *redis.Tx) error { //乐观锁
 		var err error
 		flag, err = utils.Red.SIsMember(context.Background(), key1, user.ID).Result()
@@ -150,12 +151,29 @@ func UploadFavoriteMovie(c *gin.Context) {
 				return err
 			}
 			_, err = tx.SRem(context.Background(), key2, movieId).Result()
+			if err != nil {
+				return err
+			}
 		} else {
 			_, err = tx.SAdd(context.Background(), key1, user.ID).Result()
 			if err != nil {
 				return err
 			}
 			_, err = tx.SAdd(context.Background(), key2, movieId).Result()
+			if err != nil {
+				return err
+			}
+		}
+		score, _ := utils.Red.SCard(context.Background(), key1).Result()
+		if errs := utils.Red.ZScore(context.Background(), key3, movieId).Err(); errs != nil {
+			if errs == redis.Nil {
+				utils.Red.ZAdd(context.Background(), key3, &redis.Z{Member: movieId, Score: float64(score)})
+			} else {
+				fmt.Errorf("查询redis缓存有误，请及时处理。err:%v", errs.Error())
+				err = errs
+			}
+		} else {
+			utils.Red.ZIncrBy(context.Background(), key3, float64(score), movieId)
 		}
 		return err
 	})
@@ -179,4 +197,10 @@ func FavoriteMovieList(c *gin.Context) {
 	key := utils.User_Movie_favorite_set + id_
 	str, _ := utils.Red.Get(context.Background(), key).Result()
 	utils.RespOk(c.Writer, str, "获得收藏列表")
+}
+func FavoriteMovieRanking(c *gin.Context) {
+	key := utils.Movie_ranking_sorted_set
+	members, _ := utils.Red.ZRevRangeWithScores(context.Background(), key, 0, 9).Result()
+	m := models.FavoriteRankingMovies(members)
+	utils.RespOk(c.Writer, string(m), "获取到收藏前十的电影，及其收藏数量。")
 }

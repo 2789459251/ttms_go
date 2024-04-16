@@ -58,7 +58,7 @@ func Router() *gin.Engine {
 	theatreGroup.PUT("/uploadFavorite", service.UploadFavoriteMovie) //电影收藏
 	theatreGroup.GET("/favoriteList", service.FavoriteMovieList)     //用户的收藏
 	//收藏排行榜
-
+	theatreGroup.GET("/favoriteMovieRanking", service.FavoriteMovieRanking)
 	//评分排行榜
 	//票房排行榜
 	//充值操作

@@ -2,6 +2,8 @@ package models
 
 import (
 	utils "TTMS_go/ttms/util"
+	"encoding/json"
+	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 	"sync"
 	"time"
@@ -58,4 +60,20 @@ func HitList() []Movie {
 
 func DeleteMovieById(ids []string) {
 	utils.DB.Where("id in (?)", ids).Delete(&Movie{})
+}
+
+func FavoriteRankingMovies(members []redis.Z) []byte {
+	str := []byte{}
+	type movieInfo struct {
+		m     Movie
+		score float64
+	}
+	tmp := &movieInfo{}
+	for _, member := range members {
+		utils.DB.Where("id = ?", member.Member).First(&tmp.m)
+		tmp.score = member.Score
+		t, _ := json.Marshal(tmp)
+		str = append(str, t...)
+	}
+	return str
 }
