@@ -29,3 +29,8 @@ func ShowPlaysByTheatreId(id string) []Play {
 	utils.DB.Where("theatre_id = ?", id).Find(plays)
 	return plays
 }
+func ShowPlayById(id string) *Play {
+	p := &Play{}
+	utils.DB.Where("id = ?", id).Find(p)
+	return p
+}

@@ -53,6 +53,8 @@ func Router() *gin.Engine {
 	theatreGroup.POST("/addPlay", service.AddPlay)
 	theatreGroup.GET("/showPlaysByMovieId", service.ShowPlaysByMovieId)
 	theatreGroup.GET("/showPlaysByTheatreId", service.ShowPlaysByTheatreId)
+	theatreGroup.GET("/showPlayDetails", service.ShowPlayDetails)
+
 	//充值操作
 	return r
 }

@@ -101,3 +101,16 @@ func ShowPlaysByTheatreId(c *gin.Context) {
 	}
 	utils.RespOk(c.Writer, p, "返回影院的放映安排。")
 }
+
+func ShowPlayDetails(c *gin.Context) {
+	id := c.Params.ByName("play_id")
+	p := models.ShowPlayById(id)
+	m := models.FindMovieByid(p.MovieId)
+	t := models.FindTheatreByid(p.TheatreId)
+	var response []interface{}
+	response = append(response, p)
+	response = append(response, m)
+	response = append(response, t)
+
+	utils.RespOk(c.Writer, response, "获得放映场次具体数据")
+}
