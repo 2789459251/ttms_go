@@ -3,7 +3,9 @@ package service
 import (
 	"TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
+	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"strconv"
 )
 
@@ -113,4 +115,68 @@ func ShowPlayDetails(c *gin.Context) {
 	response = append(response, t)
 
 	utils.RespOk(c.Writer, response, "获得放映场次具体数据")
+}
+
+// kafka
+func BuyTicket(c *gin.Context) {
+	//锁
+
+	//查座位状态
+
+	//查余额
+
+	//修改
+
+	//扣除
+
+	//保存
+
+}
+
+func UploadFavoriteMovie(c *gin.Context) {
+	var flag bool
+	user := User(c)
+	movieId := c.Params.ByName("movie_id")
+	key1 := utils.Movie_user_favorite_set + movieId
+	id_ := strconv.Itoa(int(user.ID))
+	key2 := utils.User_Movie_favorite_set + id_
+
+	err := utils.Red.Watch(context.Background(), func(tx *redis.Tx) error { //乐观锁
+		var err error
+		flag, err = utils.Red.SIsMember(context.Background(), key1, user.ID).Result()
+		if flag {
+			_, err = tx.SRem(context.Background(), key1, user.ID).Result()
+			if err != nil {
+				return err
+			}
+			_, err = tx.SRem(context.Background(), key2, movieId).Result()
+		} else {
+			_, err = tx.SAdd(context.Background(), key1, user.ID).Result()
+			if err != nil {
+				return err
+			}
+			_, err = tx.SAdd(context.Background(), key2, movieId).Result()
+		}
+		return err
+	})
+	if err != nil {
+		utils.RespFail(c.Writer, "收藏电影失败："+err.Error())
+		return
+	}
+
+	if flag {
+		utils.RespOk(c.Writer, "", "已经取消收藏")
+		return
+	} else {
+		utils.RespOk(c.Writer, "", "已经添加到收藏")
+		return
+	}
+}
+
+func FavoriteMovieList(c *gin.Context) {
+	user := User(c)
+	id_ := strconv.Itoa(int(user.ID))
+	key := utils.User_Movie_favorite_set + id_
+	str, _ := utils.Red.Get(context.Background(), key).Result()
+	utils.RespOk(c.Writer, str, "获得收藏列表")
 }

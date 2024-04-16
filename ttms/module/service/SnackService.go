@@ -174,7 +174,7 @@ func UploadFavorite(c *gin.Context) {
 
 	var flag bool
 	snack_id := c.Request.FormValue("snack_id")
-	key1 := utils.Snack_user_favirite_set + ":" + snack_id //一个零食受收藏人群
+	key1 := utils.Snack_user_favorite_set + ":" + snack_id //一个零食受收藏人群
 	userid := strconv.Itoa(int(userInfo.ID))
 	key2 := utils.User_snack_favorite_set + ":" + userid //一个用户收藏的零食
 
