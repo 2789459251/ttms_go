@@ -37,7 +37,7 @@ func main_() {
 	utils.DB.AutoMigrate(models2.User{})
 	utils.DB.AutoMigrate(models2.UserInfo{})
 	utils.DB.AutoMigrate(models2.Ticket{})
-	utils.DB.AutoMigrate(models2.Place{})
+	utils.DB.AutoMigrate(models2.Theatre{})
 	utils.DB.AutoMigrate(models2.Movie{})
 	utils.DB.AutoMigrate(models2.Snack{})
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// todo 在电影类可以加预告片的放映。
 type Movie struct {
 	gorm.Model
 	Info        string
@@ -22,6 +23,12 @@ type Movie struct {
 
 func (movie Movie) TableName() string {
 	return "movie_basic"
+}
+
+func FindMovieByid(id string) Movie {
+	m := Movie{}
+	utils.DB.Where("id = ?", id).Find(&m)
+	return m
 }
 
 func Update(m Movie) {

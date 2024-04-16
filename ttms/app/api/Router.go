@@ -36,7 +36,7 @@ func Router() *gin.Engine {
 	//snackGroup.PUT("/updeteSnack", service.UpdateSnack)       //修改零食信息 1
 	snackGroup.PUT("/recover", service.Recover) //一键修复删除信息 1
 
-	//票务操作
+	//电影操作
 	movieGroup := r.Group("/movie/api")
 	movieGroup.Use(jwtMiddleware.JWTAuthMiddleware())
 	movieGroup.POST("/addMovie", service.AddMovie)
@@ -44,6 +44,15 @@ func Router() *gin.Engine {
 	movieGroup.GET("/upcoming/movieList", service.Upcoming)
 	movieGroup.GET("/hit/movieList", service.Hit)
 	movieGroup.DELETE("/deletemoviesByid", service.DeleteMovies)
+
+	//管理员
+	//theatre
+	theatreGroup := r.Group("/theatre/api")
+	theatreGroup.Use(jwtMiddleware.JWTAuthMiddleware())
+	theatreGroup.POST("/addTheatre", service.AddTheatre)
+	theatreGroup.POST("/addPlay", service.AddPlay)
+	theatreGroup.GET("/showPlaysByMovieId", service.ShowPlaysByMovieId)
+	theatreGroup.GET("/showPlaysByTheatreId", service.ShowPlaysByTheatreId)
 	//充值操作
 	return r
 }
