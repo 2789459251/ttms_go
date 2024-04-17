@@ -11,9 +11,10 @@ import (
 	"time"
 )
 
-// todo 在电影类可以加预告片的放映。
+// todo 在电影类可以加预告片的放映,图片组？？？。
 type Movie struct {
 	gorm.Model
+	Picture     string
 	Info        string
 	Name        string
 	Director    string
@@ -21,6 +22,7 @@ type Movie struct {
 	Duration    time.Duration
 	ReleaseTime time.Time
 	Money       float64
+	Online      bool
 	TicketNum   int     `json:"ticket_num"`
 	Total       int     `json:"total"`   // 电影的总分
 	Count       int     `json:"count"`   // 评分人数

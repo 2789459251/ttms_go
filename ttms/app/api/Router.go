@@ -49,7 +49,8 @@ func Router() *gin.Engine {
 	movieGroup.GET("/favoriteList", service.FavoriteMovieList)            //用户的收藏
 	movieGroup.GET("/favoriteMovieRanking", service.FavoriteMovieRanking) //收藏排行榜
 	movieGroup.GET("/averageMovieRanking", service.AverageMovieRanking)   //评分排行榜
-	movieGroup.GET(("/ticketNumRanking"), service.TicketNumRanking)       //票房排行榜
+	movieGroup.GET("/ticketNumRanking", service.TicketNumRanking)         //票房排行榜
+	movieGroup.PUT("/updateMoviedetail", service.UpdateMoviedetail)
 	//theatre
 	theatreGroup := r.Group("/theatre/api") //9
 	theatreGroup.Use(jwtMiddleware.JWTAuthMiddleware())
