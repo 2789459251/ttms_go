@@ -19,6 +19,7 @@ func aviliable(movie models.Movie) error {
 	if movie.Duration == 0 {
 		return errors.New("movie duration is empty")
 	}
+
 	if movie.ReleaseTime.IsZero() {
 		return errors.New("movie release time is empty")
 	}
