@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"strconv"
+	"strings"
 )
 
 //type Theatre struct {
@@ -120,18 +121,25 @@ func ShowPlayDetails(c *gin.Context) {
 
 // kafka
 func BuyTicket(c *gin.Context) {
-	//锁
-
-	//查座位状态
-
-	//查余额
-
-	//修改
-
-	//扣除
-
-	//保存
-
+	playId := c.PostForm("play_id")
+	column := c.Request.FormValue("column")
+	columns := strings.Split(column, " ")
+	raw := c.PostForm("row")
+	raws := strings.Split(raw, " ")
+	user := User(c)
+	seats := []models.Seat{}
+	for i, _ := range raws {
+		seat := models.Seat{}
+		seat.Column, _ = strconv.Atoi(columns[i])
+		seat.Row, _ = strconv.Atoi(raws[i])
+		seats = append(seats, seat)
+	}
+	err := models.Reserve(user, playId, seats)
+	if err != nil {
+		utils.RespFail(c.Writer, "发生err :"+err.Error())
+		return
+	}
+	utils.RespOk(c.Writer, "", "购票成功")
 }
 
 func UploadFavoriteMovie(c *gin.Context) {

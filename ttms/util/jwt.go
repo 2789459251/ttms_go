@@ -76,7 +76,9 @@ func (jm *JWTMiddleware) GetAccessToken(user string) (string, error) {
 	return accessTokenSigned, err
 }
 func (jm *JWTMiddleware) ParseRefreshToken(refreshTokenString string) (*Claims, bool, error) {
-	refreshToken, err := jwt.ParseWithClaims(refreshTokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) { return jm.RefreshSecret, nil })
+	refreshToken, err := jwt.ParseWithClaims(refreshTokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return jm.RefreshSecret, nil
+	})
 	if err != nil {
 		fmt.Errorf("解析refresh token失败：%s", err.Error())
 		return nil, false, err
@@ -86,6 +88,7 @@ func (jm *JWTMiddleware) ParseRefreshToken(refreshTokenString string) (*Claims, 
 	}
 	return nil, false, errors.New("invaild refresh token")
 }
+
 func (jm *JWTMiddleware) ParseAccessToken(accessTokenString string) (*Claims, bool, error) {
 	accessToken, err := jwt.ParseWithClaims(accessTokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) { return jm.RefreshSecret, nil })
 	if err != nil {
@@ -116,7 +119,7 @@ func (jm *JWTMiddleware) JWTAuthMiddleware() gin.HandlerFunc {
 		if err != nil {
 			fmt.Errorf("")
 			c.Abort()
-			RespFail(c.Writer, "令牌解析错误")
+			RespFail(c.Writer, "令牌解析错误err:"+err.Error())
 			return
 		}
 		if !isUpd {

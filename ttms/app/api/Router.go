@@ -49,6 +49,7 @@ func Router() *gin.Engine {
 	movieGroup.GET("/favoriteList", service.FavoriteMovieList)            //用户的收藏
 	movieGroup.GET("/favoriteMovieRanking", service.FavoriteMovieRanking) //收藏排行榜
 	movieGroup.GET("/averageMovieRanking", service.AverageMovieRanking)   //评分排行榜
+	// todo 票房排行榜
 	//theatre
 	theatreGroup := r.Group("/theatre/api") //9
 	theatreGroup.Use(jwtMiddleware.JWTAuthMiddleware())
@@ -59,7 +60,6 @@ func Router() *gin.Engine {
 	theatreGroup.GET("/showPlayDetails", service.ShowPlayDetails)
 	theatreGroup.PUT("/buyTicket", service.BuyTicket)
 
-	//票房排行榜
 	//充值操作
 	return r
 }
