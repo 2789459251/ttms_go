@@ -39,26 +39,26 @@ func Router() *gin.Engine {
 	//电影操作
 	movieGroup := r.Group("/movie/api") //5
 	movieGroup.Use(jwtMiddleware.JWTAuthMiddleware())
-	movieGroup.POST("/addMovie", service.AddMovie)
-	movieGroup.GET("/movieList", service.MovieList)
-	movieGroup.GET("/upcoming/movieList", service.Upcoming)
-	movieGroup.GET("/hit/movieList", service.Hit)
-	movieGroup.DELETE("/deletemoviesByid", service.DeleteMovies)
+	movieGroup.POST("/addMovie", service.AddMovie)                        //上架电影
+	movieGroup.GET("/movieList", service.MovieList)                       //查询所有电影
+	movieGroup.GET("/upcoming/movieList", service.Upcoming)               //查询待映电影
+	movieGroup.GET("/hit/movieList", service.Hit)                         //查询热映电影
+	movieGroup.DELETE("/deletemoviesByid", service.DeleteMovies)          //下架电影
 	movieGroup.PUT("/markMovie", service.MarkMovie)                       //评分
 	movieGroup.PUT("/uploadFavorite", service.UploadFavoriteMovie)        //电影收藏
 	movieGroup.GET("/favoriteList", service.FavoriteMovieList)            //用户的收藏
 	movieGroup.GET("/favoriteMovieRanking", service.FavoriteMovieRanking) //收藏排行榜
 	movieGroup.GET("/averageMovieRanking", service.AverageMovieRanking)   //评分排行榜
-	// todo 票房排行榜
+	movieGroup.GET(("/ticketNumRanking"), service.TicketNumRanking)       //票房排行榜
 	//theatre
 	theatreGroup := r.Group("/theatre/api") //9
 	theatreGroup.Use(jwtMiddleware.JWTAuthMiddleware())
-	theatreGroup.POST("/addTheatre", service.AddTheatre)
-	theatreGroup.POST("/addPlay", service.AddPlay)
-	theatreGroup.GET("/showPlaysByMovieId", service.ShowPlaysByMovieId)
+	theatreGroup.POST("/addTheatre", service.AddTheatre)                //添加放映厅
+	theatreGroup.POST("/addPlay", service.AddPlay)                      //安排放映
+	theatreGroup.GET("/showPlaysByMovieId", service.ShowPlaysByMovieId) //查询某电影的放映安排
 	theatreGroup.GET("/showPlaysByTheatreId", service.ShowPlaysByTheatreId)
-	theatreGroup.GET("/showPlayDetails", service.ShowPlayDetails)
-	theatreGroup.PUT("/buyTicket", service.BuyTicket)
+	theatreGroup.GET("/showPlayDetails", service.ShowPlayDetails) // 查询电影细节
+	theatreGroup.PUT("/buyTicket", service.BuyTicket)             //买票
 
 	//充值操作
 	return r

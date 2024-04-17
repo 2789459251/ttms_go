@@ -2,8 +2,11 @@ package models
 
 import (
 	utils "TTMS_go/ttms/util"
+	"context"
 	"errors"
+	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -25,13 +28,14 @@ func CreatePlay(play *Play) {
 }
 func ShowPlaysByMovieId(id string) []Play {
 	plays := []Play{}
-	utils.DB.Where("movie_id = ?", id).Find(plays)
+	utils.DB.Where("movie_id = ? AND  begin_time > ?", id, time.Now()).Find(plays)
 	return plays
 }
 func ShowPlaysByTheatreId(id string) []Play {
 	plays := []Play{}
-	utils.DB.Where("theatre_id = ?", id).Find(plays)
+	utils.DB.Where("theatre_id = ? AND  begin_time > ?", id, time.Now()).Find(plays)
 	return plays
+
 }
 func ShowPlayById(id string) *Play {
 	p := &Play{}
@@ -72,10 +76,16 @@ func Reserve(user UserInfo, id string, seats []Seat) error {
 		play.Seat[seat.Row-1][seat.Column-1] = 1
 	}
 	user.Wallet -= (movie.Money * float64(len(seats)))
-
+	movie.TicketNum += len(seats)
+	utils.DB.Save(movie)
 	//保存剧目信息
 	utils.DB.Save(play)
 
+	key := utils.Movie_Ticket_Num_set
+	utils.Red.ZAdd(context.Background(), key, &redis.Z{
+		Member: strconv.Itoa(int(movie.ID)),
+		Score:  float64(movie.TicketNum),
+	})
 	//生成票，保存到user.tacket
 	ticket := CreateTicket(play, movie, seats)
 	user.Ticket = append(user.Ticket, ticket)

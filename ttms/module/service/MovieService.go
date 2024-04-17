@@ -33,7 +33,6 @@ func AddMovie(c *gin.Context) {
 	if aviliable(movie) != nil {
 		utils.RespFail(c.Writer, "上传电影数据不可用，请重新上传")
 	}
-
 	models.Update(movie)
 	utils.RespOk(c.Writer, movie, "电影上架成功")
 }

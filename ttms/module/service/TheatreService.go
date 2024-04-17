@@ -245,3 +245,16 @@ func AverageMovieRanking(c *gin.Context) {
 	result := models.RankingMovies(members)
 	utils.RespOk(c.Writer, string(result), "获取到评分前十条电影，及其评分")
 }
+
+func TicketNumRanking(c *gin.Context) {
+	key := utils.Movie_Ticket_Num_set
+	members, _ := utils.Red.ZRevRangeByScoreWithScores(context.Background(), key,
+		&redis.ZRangeBy{
+			Min:    "-inf",
+			Max:    "+inf",
+			Offset: 0,
+			Count:  10,
+		}).Result()
+	result := models.RankingMovies(members)
+	utils.RespOk(c.Writer, string(result), "获取到票房前十条电影，及其票房")
+}

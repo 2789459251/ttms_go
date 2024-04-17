@@ -21,6 +21,7 @@ type Movie struct {
 	Duration    time.Duration
 	ReleaseTime time.Time
 	Money       float64
+	TicketNum   int     `json:"ticket_num"`
 	Total       int     `json:"total"`   // 电影的总分
 	Count       int     `json:"count"`   // 评分人数
 	Average     float64 `json:"average"` // 平均分

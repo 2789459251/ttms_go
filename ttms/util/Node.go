@@ -9,4 +9,5 @@ const (
 
 	User_Movie_marked_set = "User_Movie_marked_set" //有序Set,用户电影评价列表
 	Movie_Average_set     = "Movie_Average_set"
+	Movie_Ticket_Num_set  = "Movie_Ticket_Num_set"
 )
