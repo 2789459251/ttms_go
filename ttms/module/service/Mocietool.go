@@ -42,6 +42,7 @@ func isTimeable(t *models.Theatre, play models.Play) error {
 		return errors.New("演出结束时间与下一场开始时间冲突")
 	}
 	tmp := &models.Node{Play: play}
+
 	q.Next = tmp
 	tmp.Next = p
 	return nil
