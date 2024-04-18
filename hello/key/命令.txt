@@ -1,0 +1,27 @@
+生成私钥
+openssl genrsa -out server.key 2048
+生成证书
+openssl req -new -x509 -key server.key -out server.crt -days 36500(有效期)
+生成证书签名请求文件
+openssl req -new -key server.key -out server.csr
+
+修改配置文件
+    cp openssl.cnf key
+    copy_extensions = copy
+    req_extensions = v3_req # The extensions to add to a certificate request
+    [ v3_req ]中添加 subjectAltName = @alt_names
+    添加标签：[alt_names]DNS.1=*.zy.com=》只有这个域名可以访问到代码
+
+生成证书私钥test.key
+    openssl genpkey -algorithm RSA -out test.key
+生产证书请求文件test.csr
+ openssl req -new -nodes -key test.key -out test.csr -days 3650 -subj
+ "/C=cn/OU=myorg/O=mycomp/CN=myname" -config ./openssl.cnf -extensions v3_req
+生成SAN证书pem
+openssl x509 -req -days 365 -in test.csr -out test.pem -CA
+server.crt -CAcreateserial -extfile ./openssl.cnf -extensions v3_req
+改正版命令：
+sudo openssl x509 -req -days 365 -in test.csr -out test.pem
+-CA /usr/local/sdk/go/src/hello/key/server.crt
+-CAkey /usr/local/sdk/go/src/hello/key/server.key
+-CAcreateserial -extfile ./openssl.cnf -extensions v3_req
