@@ -15,7 +15,7 @@ type Play struct {
 	gorm.Model
 	MovieId   string
 	TheatreId string
-	Seat      [][]int //0 1 2
+	Seat      [][]int `gorm:"type:json""` //0 1 2
 	Num       string  //剩余座位数量
 	BeginTime time.Time
 	EndTime   time.Time

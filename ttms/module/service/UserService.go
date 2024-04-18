@@ -53,9 +53,11 @@ func CreateUser(c *gin.Context) {
 	} else {
 		user.Password, _ = utils.GetPwd(password)
 		models.CreateUser(user)
+
+		//c.Redirect(http.StatusMovedPermanently, "/user/api/loginByPassword")
 		c.JSON(http.StatusOK, gin.H{
 			"code":    0, //成功
-			"message": "注册成功",
+			"message": "redirect_url:/user/api/loginByPassword",
 			"data":    user,
 		})
 		return
@@ -221,11 +223,6 @@ func Admin(c *gin.Context) {
 	id_ := c.Request.FormValue("id")
 	user := models.FindUserByUserInfoId(id_).UserInfo
 	user.Flag = 1
-	//err := user.RefleshUserInfo_()
-	//if err != nil {
-	//	utils.RespFail(c.Writer, "升级失败:"+err.Error())
-	//	return
-	//}
 	utils.DB.Exec("Update user_info set flag=1 where id=?", id_)
 	fmt.Println(user.Flag)
 	utils.RespOk(c.Writer, user, "升级成功，您可以执行管理员的任务了")

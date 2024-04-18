@@ -12,15 +12,16 @@ func main() {
 	utils.InitRedis()
 	//utils.DB.Migrator().DropTable(models2.User{})
 	//utils.DB.Migrator().DropTable(models2.UserInfo{})
-	//
-	//utils.DB.AutoMigrate(models2.User{})
-	//utils.DB.AutoMigrate(models2.UserInfo{})
-	//utils.DB.AutoMigrate(models2.Ticket{})
-	//utils.DB.AutoMigrate(models2.Theatre{})
-	utils.DB.Migrator().DropTable(models2.Movie{})
+
+	utils.DB.AutoMigrate(models2.User{})
+	utils.DB.AutoMigrate(models2.UserInfo{})
+	utils.DB.AutoMigrate(models2.Ticket{})
+	utils.DB.AutoMigrate(models2.Theatre{})
+	utils.DB.AutoMigrate(models2.Play{})
+	//utils.DB.Migrator().DropTable(models2.Movie{})
 	utils.DB.AutoMigrate(models2.Movie{})
 	//utils.DB.Migrator().DropTable(models2.Snack{})
-	//utils.DB.AutoMigrate(models2.Snack{})
+	utils.DB.AutoMigrate(models2.Snack{})
 	r := router.Router()
 	r.Run("0.0.0.0:8082")
 }

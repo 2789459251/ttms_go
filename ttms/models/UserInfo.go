@@ -3,16 +3,23 @@ package models
 import (
 	utils "TTMS_go/ttms/util"
 	"gorm.io/gorm"
+	"time"
 )
 
 type UserInfo struct {
 	gorm.Model
 	Wallet float64
 	//Ticket []uint
-	Flag     int      `gorm:"default:0"` // 0 用户 1 管理员
-	Ticket   []Ticket `gorm:"type:json"`
-	Snack    []Snack_ `gorm:"type:json"`
-	Favorite []int    `gorm:"type:json"`
+	Flag          int       `gorm:"default:0"` // 0 用户 1 管理员
+	Ticket        []Ticket  `gorm:"type:json"`
+	Snack         []Snack_  `gorm:"type:json"`
+	FavoriteMovie []int     `gorm:"type:json"`
+	FavoriteSnack []int     `gorm:"type:json"`
+	Name          string    //昵称
+	ProfilePhoto  string    //头像
+	Brithday      time.Time `gorm:"type:date;DEFAULT:NULL"` // 生日
+	Interest      []string  `gorm:"type:json"`              //兴趣
+	Sign          string    //签名
 }
 
 func (user UserInfo) TableName() string {
