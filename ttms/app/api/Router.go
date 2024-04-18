@@ -63,6 +63,7 @@ func Router() *gin.Engine {
 	theatreGroup.GET("/showPlayDetails", service.ShowPlayDetails) // 查询电影细节
 	theatreGroup.PUT("/buyTicket", service.BuyTicket)             //买票
 
+	//other
 	//充值操作
 	return r
 }

@@ -4,7 +4,6 @@ import (
 	models2 "TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
 	"context"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
 	"github.com/qiniu/go-sdk/v7/storage"
@@ -91,11 +90,11 @@ func upload(r *http.Request, w http.ResponseWriter, c *gin.Context) (string, err
 	if err != nil {
 		utils.RespFail(c.Writer, "文件读取失败："+err.Error())
 	}
-	fmt.Println(head.Header)
+	//fmt.Println(head.Header)
 	formUploader := storage.NewFormUploader(&cfg)
 	ret := storage.PutRet{}
 	putExtra := storage.PutExtra{}
-	fmt.Println(head.Size)
+	//fmt.Println(head.Size)
 	err = formUploader.Put(context.Background(), &ret, upTocken, head.Filename, file, head.Size, &putExtra)
 	return url_ + ret.Key, err
 }

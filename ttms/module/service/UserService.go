@@ -5,6 +5,7 @@ import (
 	utils "TTMS_go/ttms/util"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/goccy/go-json"
 	"github.com/spf13/viper"
 	"net/http"
 	"strconv"
@@ -238,14 +239,20 @@ func Profile(c *gin.Context) {
 	for _, num := range nums {
 		switch num {
 		case "1":
-			userInfo.Name = c.Request.FormValue("name")
+			name := c.Request.FormValue("name")
+			userInfo.Name = name
 		case "2":
 			userInfo.ProfilePhoto, _ = upload(c.Request, c.Writer, c)
 		case "3":
-			userInfo.Brithday = c.GetTime("birthday")
+			p := c.PostForm("birthday")
+			p_, _ := strconv.Atoi(p)
+			time := time.Unix(int64(p_), 0)
+			userInfo.Birthday = time
 		case "4":
-			interest, _ := c.GetQueryArray("interest")
-			userInfo.Interest = append(userInfo.Interest, interest...)
+			interest := c.PostFormArray("interest")
+			interest_, _ := json.Marshal(interest)
+			fmt.Println(string(interest_))
+			userInfo.Interest = append(userInfo.Interest, string(interest_))
 		case "5":
 			userInfo.Sign = c.Request.FormValue("sign")
 		default:
@@ -254,6 +261,11 @@ func Profile(c *gin.Context) {
 		}
 
 	}
-	models.RefreshUserInfo(userId, userInfo)
+	err := userInfo.RefleshUserInfo_()
+	if err != nil {
+		utils.RespFail(c.Writer, "修改失败："+err.Error())
+		return
+	}
+	utils.RespOk(c.Writer, userInfo, "修改成功")
 	return
 }
