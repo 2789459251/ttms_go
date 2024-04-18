@@ -75,27 +75,31 @@ func UpdateMoviedetail(c *gin.Context) {
 		return
 	}
 	n := c.Params.ByName("Num")
+	nums := strings.Split(n, " ")
 	movieId := c.Params.ByName("movie_id")
 	movie := models.FindMovieByid(movieId)
-	switch n {
-	case "1":
-		movie.Name = c.Request.FormValue("name") //名字
-	case "2":
-		movie.Director = c.Request.FormValue("director") //导演
-	case "3":
-		movie.Money = float64(c.GetFloat64("money")) //单价
-	case "4":
-		movie.Info = c.Request.FormValue("info") //简述
-	case "5":
-		movie.Duration = c.GetDuration("duration") //时长
-	case "6":
-		movie.ReleaseTime = c.GetTime("release_time") //发映时间
-	case "7":
-		movie.Online = c.GetBool("online") //是否在院线上映
-	default:
-		utils.RespFail(c.Writer, "注意规范num输入~")
-		return
+	for _, num := range nums {
+		switch num {
+		case "1":
+			movie.Name = c.Request.FormValue("name") //名字
+		case "2":
+			movie.Director = c.Request.FormValue("director") //导演
+		case "3":
+			movie.Money = float64(c.GetFloat64("money")) //单价
+		case "4":
+			movie.Info = c.Request.FormValue("info") //简述
+		case "5":
+			movie.Duration = c.GetDuration("duration") //时长
+		case "6":
+			movie.ReleaseTime = c.GetTime("release_time") //发映时间
+		case "7":
+			movie.Online = c.GetBool("online") //是否在院线上映
+		default:
+			utils.RespFail(c.Writer, "注意规范num输入~")
+			return
+		}
 	}
+
 	models.Update(movie)
 	utils.RespOk(c.Writer, movie, "修改数据成功")
 }

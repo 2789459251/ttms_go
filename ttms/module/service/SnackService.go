@@ -16,10 +16,9 @@ func BuySnack(c *gin.Context) {
 	user := User(c)
 	id_ := c.Request.FormValue("id")
 	num_ := c.Request.FormValue("num")
-	id, _ := strconv.Atoi(id_)
 	num, _ := strconv.Atoi(num_)
 
-	s := models2.QuerysnackByid(id)
+	s := models2.QuerysnackByid(id_)
 	// 读锁
 	stock := s.GetStock()
 
@@ -133,8 +132,7 @@ func Putaway(c *gin.Context) {
 
 func Getdetail(c *gin.Context) {
 	id_ := c.Query("id")
-	id, _ := strconv.Atoi(id_)
-	s := models2.QuerysnackByid(id)
+	s := models2.QuerysnackByid(id_)
 	utils.RespOk(c.Writer, s, "返回指定id零食")
 }
 
@@ -221,18 +219,44 @@ func Recover(c *gin.Context) {
 	utils.RespOk(c.Writer, nil, "ok")
 }
 
+//	type Snack struct {
+//		gorm.Model
+//		mu      sync.RWMutex
+//		Name    string
+//		Picture string
+//		Info    string
+//		Stock   int     //库存量
+//		Price   float64 //价格
+//	}
 func UpdateSnack(c *gin.Context) {
 	//todo 文件待开发，加入ES存储功能
-	//snack_id := c.Request.FormValue("snack_id")
-	//snack_id_, _ := strconv.Atoi(snack_id)
-	//s := models2.QuerysnackByid(snack_id_)
-	//if s.Name == "" {
-	//	utils.RespFail(c.Writer, "id传入无效")
-	//	return
-	//}
-	//if name := c.Request.FormValue("Name"); name != nil {
-	//	s.Name = name
-	//}
+	if !isLimited(c) {
+		return
+	}
+	snackId := c.Request.FormValue("snack_id")
+	snack := models2.QuerysnackByid(snackId)
+	num := c.Request.FormValue("num")
+	nums := strings.Split(num, " ")
+	for _, num_ := range nums {
+		switch num_ {
+		case "1":
+			snack.Name = c.Request.FormValue("name")
+		case "2":
+			snack.Info = c.Request.FormValue("info")
+		case "3":
+			snack.Picture, _ = upload(c.Request, c.Writer, c)
+		case "4":
+			snack.Stock = c.GetInt("stock")
+		case "5":
+			snack.Price = c.GetFloat64("price")
+		default:
+			utils.RespFail(c.Writer, "输入不规范，请规范输入")
+			return
+		}
+	}
+
+	snack.RefreshSnack()
+	utils.RespOk(c.Writer, snack, "成功修改零食的信息")
 }
 
 func FavoriteSnackList(c *gin.Context) {

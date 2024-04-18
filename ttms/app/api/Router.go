@@ -25,17 +25,17 @@ func Router() *gin.Engine {
 	snackGroup := r.Group("/snack/api") //9
 	snackGroup.Use(jwtMiddleware.JWTAuthMiddleware())
 	//零食操作
-	snackGroup.POST("/buy", service.BuySnack)                 //购买
-	snackGroup.POST("/putaway", service.Putaway)              //上架 1
-	snackGroup.GET("/getsnackList", service.ShowSnacks)       //查询零食列表
-	snackGroup.GET("/search", service.SearchSnack)            //搜索特定零食
-	snackGroup.GET("/query", service.Getdetail)               //根据id查询
-	snackGroup.DELETE("/removeByid", service.Remove)          //下架by——id 1
-	snackGroup.DELETE("/removeByNamekey", service.Removes)    //下架by--name关键字 1
-	snackGroup.PUT("/uploadFavorite", service.UploadFavorite) //零食加入收藏
-	//snackGroup.PUT("/updeteSnack", service.UpdateSnack)       //修改零食信息 1
-	snackGroup.GET("/favoriteList", service.FavoriteSnackList)
-	snackGroup.PUT("/recover", service.Recover) //一键修复删除信息 1
+	snackGroup.POST("/buy", service.BuySnack)                  //购买
+	snackGroup.POST("/putaway", service.Putaway)               //上架 1
+	snackGroup.GET("/getsnackList", service.ShowSnacks)        //查询零食列表
+	snackGroup.GET("/search", service.SearchSnack)             //搜索特定零食
+	snackGroup.GET("/query", service.Getdetail)                //根据id查询
+	snackGroup.DELETE("/removeByid", service.Remove)           //下架by——id 1
+	snackGroup.DELETE("/removeByNamekey", service.Removes)     //下架by--name关键字 1
+	snackGroup.PUT("/uploadFavorite", service.UploadFavorite)  //零食加入收藏
+	snackGroup.PUT("/updeteSnack", service.UpdateSnack)        //修改零食信息 1
+	snackGroup.GET("/favoriteList", service.FavoriteSnackList) //收藏零食列表
+	snackGroup.PUT("/recover", service.Recover)                //一键修复删除信息 1
 
 	//电影操作
 	movieGroup := r.Group("/movie/api") //5
@@ -51,7 +51,7 @@ func Router() *gin.Engine {
 	movieGroup.GET("/favoriteMovieRanking", service.FavoriteMovieRanking) //收藏排行榜
 	movieGroup.GET("/averageMovieRanking", service.AverageMovieRanking)   //评分排行榜
 	movieGroup.GET("/ticketNumRanking", service.TicketNumRanking)         //票房排行榜
-	movieGroup.PUT("/updateMoviedetail", service.UpdateMoviedetail)
+	movieGroup.PUT("/updateMoviedetail", service.UpdateMoviedetail)       //修改电影信息
 	//theatre
 	theatreGroup := r.Group("/theatre/api") //9
 	theatreGroup.Use(jwtMiddleware.JWTAuthMiddleware())

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gorm.io/gorm"
 	"log"
+	"strconv"
 	"sync"
 )
 
@@ -41,7 +42,7 @@ func SearchSnack(name string) (snacks []Snack) {
 func Insertsnack(snack Snack) {
 	utils.DB.Create(&snack)
 }
-func QuerysnackByid(id int) (s Snack) {
+func QuerysnackByid(id string) (s Snack) {
 	utils.DB.Where("id = ?", id).First(&s)
 	return
 }
@@ -64,7 +65,8 @@ func (s *Snack) UpdateStock(Func func() (err error)) {
 }
 
 func DeleteSnackByid(id int) error {
-	s := QuerysnackByid(id)
+	id_str := strconv.Itoa(id)
+	s := QuerysnackByid(id_str)
 	ss := []Snack{}
 	ss = append(ss, s)
 	return utils.DB.Delete(ss).Error
@@ -74,7 +76,7 @@ func DeleteSnackByNamekey(nameKey string) error {
 	return utils.DB.Delete(snacks).Error
 }
 func (s *Snack) RefreshSnack() {
-
+	utils.DB.Model(s).Save(&s)
 }
 
 func FindSnackByIds(ids []string) []Snack {
