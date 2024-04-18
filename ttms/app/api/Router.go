@@ -20,6 +20,7 @@ func Router() *gin.Engine {
 	userGroup.POST("/resetPassword", service.ResetPassword)
 	userGroup.GET("/refreshToken", jwtMiddleware.RefreshHandler)
 	userGroup.PUT("/admin", service.Admin)
+	userGroup.POST("/profile", service.Profile)
 	//登出
 	//userGroup.GET("/logout",service.Logout)
 	snackGroup := r.Group("/snack/api") //9

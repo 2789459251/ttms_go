@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -226,5 +227,33 @@ func Admin(c *gin.Context) {
 	utils.DB.Exec("Update user_info set flag=1 where id=?", id_)
 	fmt.Println(user.Flag)
 	utils.RespOk(c.Writer, user, "升级成功，您可以执行管理员的任务了")
+	return
+}
+
+func Profile(c *gin.Context) {
+	n := c.Request.FormValue("num")
+	userId := c.Request.FormValue("user_id")
+	userInfo := models.FindUserInfo(userId)
+	nums := strings.Split(n, " ")
+	for _, num := range nums {
+		switch num {
+		case "1":
+			userInfo.Name = c.Request.FormValue("name")
+		case "2":
+			userInfo.ProfilePhoto, _ = upload(c.Request, c.Writer, c)
+		case "3":
+			userInfo.Brithday = c.GetTime("birthday")
+		case "4":
+			interest, _ := c.GetQueryArray("interest")
+			userInfo.Interest = append(userInfo.Interest, interest...)
+		case "5":
+			userInfo.Sign = c.Request.FormValue("sign")
+		default:
+			utils.RespFail(c.Writer, "输入不规范！")
+			return
+		}
+
+	}
+	models.RefreshUserInfo(userId, userInfo)
 	return
 }
