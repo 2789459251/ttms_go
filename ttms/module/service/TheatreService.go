@@ -199,13 +199,6 @@ func UploadFavoriteMovie(c *gin.Context) {
 	}
 }
 
-func FavoriteMovieList(c *gin.Context) {
-	user := User(c)
-	id_ := strconv.Itoa(int(user.ID))
-	key := utils.User_Movie_favorite_set + id_
-	str, _ := utils.Red.Get(context.Background(), key).Result()
-	utils.RespOk(c.Writer, str, "获得收藏列表")
-}
 func FavoriteMovieRanking(c *gin.Context) {
 	key := utils.Movie_ranking_sorted_set
 	members, _ := utils.Red.ZRevRangeByScoreWithScores(context.Background(), key, &redis.ZRangeBy{

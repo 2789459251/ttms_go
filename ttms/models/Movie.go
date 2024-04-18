@@ -111,3 +111,13 @@ func UpdateMovieMark(m Movie, IMDbScore int, key string, movieId string) Movie {
 	Update(m)
 	return m
 }
+
+func FindMovieByIds(ids []string) []Movie {
+	movies := []Movie{}
+	for _, id := range ids {
+		movie := Movie{}
+		utils.DB.Where("id = ?", id).Find(&movie)
+		movies = append(movies, movie)
+	}
+	return movies
+}

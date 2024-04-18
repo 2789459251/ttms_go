@@ -9,6 +9,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 	"strconv"
+	"strings"
 )
 
 func BuySnack(c *gin.Context) {
@@ -232,4 +233,23 @@ func UpdateSnack(c *gin.Context) {
 	//if name := c.Request.FormValue("Name"); name != nil {
 	//	s.Name = name
 	//}
+}
+
+func FavoriteSnackList(c *gin.Context) {
+	user := User(c)
+	userId := strconv.Itoa(int(user.ID))
+	key := utils.User_snack_favorite_set + userId
+	str, err := utils.Red.SMembers(context.Background(), key).Result()
+	if err != nil {
+		utils.RespFail(c.Writer, "从redis获取缓存失败："+err.Error())
+		return
+	}
+	s_ := []string{}
+
+	for i, _ := range str {
+		s := strings.Split(str[i], ")")
+		s_ = append(s_, s[1])
+	}
+	snacks := models2.FindSnackByIds(s_)
+	utils.RespOk(c.Writer, snacks, "获取到零食收藏的信息如下")
 }

@@ -3,7 +3,9 @@ package service
 import (
 	"TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
+	"context"
 	"github.com/gin-gonic/gin"
+	"strconv"
 	"strings"
 )
 
@@ -68,31 +70,6 @@ func DeleteMovies(c *gin.Context) {
 	models.DeleteMovieById(ids)
 }
 
-//	type Movie struct {
-//		gorm.Model
-//		Info        string
-//		Name        string
-//		Director    string
-//		Actor       string
-//		Duration    time.Duration
-//		ReleaseTime time.Time
-//
-// Online
-//
-//		Money       float64
-//		TicketNum   int     `json:"ticket_num"`
-//		Total       int     `json:"total"`   // 电影的总分
-//		Count       int     `json:"count"`   // 评分人数
-//		Average     float64 `json:"average"` // 平均分
-//		mu          sync.RWMutex
-//	}
-//
-// Name:        c.Request.FormValue("name"),
-// Director:    c.Request.FormValue("director"),
-// Money:       float64(c.GetFloat64("money")),
-// Info:        c.Request.FormValue("info"),
-// Duration:    c.GetDuration("duration"),
-// ReleaseTime: c.GetTime("release_time"),
 func UpdateMoviedetail(c *gin.Context) {
 	if !isLimited(c) {
 		return
@@ -121,4 +98,26 @@ func UpdateMoviedetail(c *gin.Context) {
 	}
 	models.Update(movie)
 	utils.RespOk(c.Writer, movie, "修改数据成功")
+}
+
+func FavoriteMovieList(c *gin.Context) {
+	user := User(c)
+	id_ := strconv.Itoa(int(user.ID))
+	key := utils.User_Movie_favorite_set + id_
+	//1) "A"
+	//2) "B"
+	//3) "C"
+	s_ := []string{}
+	str, err := utils.Red.SMembers(context.Background(), key).Result()
+	if err != nil {
+		utils.RespFail(c.Writer, "从redis获取缓存失败："+err.Error())
+		return
+	}
+	for i, _ := range str {
+		s := strings.Split(str[i], ")")
+		s_ = append(s_, s[1])
+	}
+
+	movies := models.FindMovieByIds(s_)
+	utils.RespOk(c.Writer, movies, "获得电影收藏列表")
 }

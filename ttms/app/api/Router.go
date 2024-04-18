@@ -34,6 +34,7 @@ func Router() *gin.Engine {
 	snackGroup.DELETE("/removeByNamekey", service.Removes)    //下架by--name关键字 1
 	snackGroup.PUT("/uploadFavorite", service.UploadFavorite) //零食加入收藏
 	//snackGroup.PUT("/updeteSnack", service.UpdateSnack)       //修改零食信息 1
+	snackGroup.GET("/favoriteList", service.FavoriteSnackList)
 	snackGroup.PUT("/recover", service.Recover) //一键修复删除信息 1
 
 	//电影操作

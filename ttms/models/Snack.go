@@ -76,3 +76,13 @@ func DeleteSnackByNamekey(nameKey string) error {
 func (s *Snack) RefreshSnack() {
 
 }
+
+func FindSnackByIds(ids []string) []Snack {
+	snacks := []Snack{}
+	for _, id := range ids {
+		snack := Snack{}
+		utils.DB.Where("id = ?", id).First(&snack)
+		snacks = append(snacks, snack)
+	}
+	return snacks
+}
