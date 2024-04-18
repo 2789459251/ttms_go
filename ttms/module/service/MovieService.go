@@ -111,17 +111,13 @@ func FavoriteMovieList(c *gin.Context) {
 	//1) "A"
 	//2) "B"
 	//3) "C"
-	s_ := []string{}
+
 	str, err := utils.Red.SMembers(context.Background(), key).Result()
 	if err != nil {
 		utils.RespFail(c.Writer, "从redis获取缓存失败："+err.Error())
 		return
 	}
-	for i, _ := range str {
-		s := strings.Split(str[i], ")")
-		s_ = append(s_, s[1])
-	}
 
-	movies := models.FindMovieByIds(s_)
+	movies := models.FindMovieByIds(str)
 	utils.RespOk(c.Writer, movies, "获得电影收藏列表")
 }

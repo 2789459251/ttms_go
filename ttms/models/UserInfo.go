@@ -2,9 +2,7 @@ package models
 
 import (
 	utils "TTMS_go/ttms/util"
-	"database/sql/driver"
 	"encoding/json"
-	"errors"
 	"gorm.io/gorm"
 	"time"
 )
@@ -15,7 +13,7 @@ type UserInfo struct {
 	//Ticket []uint
 	Flag          int       `gorm:"default:0"` // 0 用户 1 管理员
 	Ticket        []Ticket  `gorm:"type:json"`
-	Snack         []Snack_  `gorm:"type:json"`
+	Snack         []Snack   `gorm:"type:json"`
 	FavoriteMovie []int     `gorm:"type:json"`
 	FavoriteSnack []int     `gorm:"type:json"`
 	Name          string    //昵称
@@ -30,38 +28,41 @@ type stringSlice []string
 func (user UserInfo) TableName() string {
 	return "user_info"
 }
-func (ri stringSlice) Value() (driver.Value, error) {
-	// 将 ResultInfo 结构体切片转换为 JSON 格式的字符串
-	value, err := json.Marshal(ri)
-	if err != nil {
-		return nil, err
-	}
-	return string(value), nil
-}
-
-// Scan 将数据库中的值解析为 ResultInfoSlice 结构体切片
-func (ri stringSlice) Scan(value interface{}) error {
-	// 将数据库中的值解析为字符串
-	stringValue, ok := value.(string)
-	if !ok {
-		return errors.New("不是 ResultInfo 切片类型")
-	}
-
-	// 将 JSON 格式的字符串解析为 ResultInfo 结构体切片
-	var resultInfoSlice stringSlice
-	if err := json.Unmarshal([]byte(stringValue), &resultInfoSlice); err != nil {
-		return err
-	}
-
-	ri = resultInfoSlice
-
-	return nil
-}
 
 func FindUserInfo(id string) UserInfo {
-	u := &UserInfo{}
-	utils.DB.Where("id = ?", id).First(&u)
-	return *u
+	u := UserInfo{}
+	utils.DB.Where("id = ? ", id).First(&u)
+	//ticketJson, _ := json.Marshal(u.Ticket)
+	//snackJson, _ := json.Marshal(u.Snack)
+	//favoriteMovieJson, _ := json.Marshal(u.FavoriteMovie)
+	//favoriteSnackJson, _ := json.Marshal(u.FavoriteSnack)
+	var interestJson, ticketJson, sign, snackJson, favoriteMovieJson, favoriteSnackJson string
+	//"sign","snack","favorite_movie","favorite_snack").Rows()
+	utils.DB.Table("user_info").Where("id = ? ", id).Select("interest").Scan(&interestJson)
+	utils.DB.Table("user_info").Where("id = ? ", id).Select("ticket").Scan(&ticketJson)
+	utils.DB.Table("user_info").Where("id = ? ", id).Select("sign").Scan(&sign)
+	utils.DB.Table("user_info").Where("id = ? ", id).Select("snack").Scan(&snackJson)
+	utils.DB.Table("user_info").Where("id = ? ", id).Select("favorite_movie").Scan(&favoriteMovieJson)
+	utils.DB.Table("user_info").Where("id = ? ", id).Select("favorite_snack").Scan(&favoriteSnackJson)
+
+	interest := []string{}
+	tickets := []Ticket{}
+	Snacks := []Snack{}
+	favoriteMovies := []int{}
+	favoriteSnacks := []int{}
+
+	json.Unmarshal([]byte(interestJson), &interest)
+	json.Unmarshal([]byte(ticketJson), &tickets)
+	json.Unmarshal([]byte(snackJson), &Snacks)
+	json.Unmarshal([]byte(favoriteMovieJson), &favoriteMovies)
+	json.Unmarshal([]byte(favoriteSnackJson), &favoriteSnacks)
+	u.Interest = interest
+	u.Ticket = tickets
+	u.Snack = Snacks
+	u.FavoriteSnack = favoriteMovies
+	u.FavoriteMovie = favoriteMovies
+	u.Sign = sign
+	return u
 }
 func (u UserInfo) RefleshUserInfo_() (err error) {
 	//uu := []UserInfo{}
@@ -71,8 +72,24 @@ func (u UserInfo) RefleshUserInfo_() (err error) {
 	//并将其存储到JSON类型的字段中。在MySQL中，
 	//您可以使用JSON_ARRAY函数创建一个JSON数组。
 	//INSERT INTO table_name (json_array_column) VALUES (JSON_ARRAY(1, 2, 3, 4, 5));
-
+	//Ticket        []Ticket  `gorm:"type:json"`
+	//Snack         []Snack_  `gorm:"type:json"`
+	//FavoriteMovie []int     `gorm:"type:json"`
+	//FavoriteSnack []int     `gorm:"type:json"`
+	interestJson, _ := json.Marshal(u.Interest)
+	ticketJson, _ := json.Marshal(u.Ticket)
+	snackJson, _ := json.Marshal(u.Snack)
+	favoriteMovieJson, _ := json.Marshal(u.FavoriteMovie)
+	favoriteSnackJson, _ := json.Marshal(u.FavoriteSnack)
 	err = utils.DB.Save(u).Error
+	utils.DB.Updates(map[string]interface{}{
+		"interest":      interestJson,
+		"snack":         snackJson,
+		"ticket":        ticketJson,
+		"favoriteMovie": favoriteMovieJson,
+		"favoriteSnack": favoriteSnackJson,
+	})
+
 	return
 }
 func (u UserInfo) FindUserinfoByid(id string) (user UserInfo, err error) {

@@ -269,3 +269,11 @@ func Profile(c *gin.Context) {
 	utils.RespOk(c.Writer, userInfo, "修改成功")
 	return
 }
+
+func UserDetail(c *gin.Context) {
+	id := c.Query("user_id")
+	fmt.Println(id)
+	//todo 兴趣和生日和签名，没有
+	user := models.FindUserInfo(id)
+	utils.RespOk(c.Writer, user, user.Name+"个人信息图下")
+}
