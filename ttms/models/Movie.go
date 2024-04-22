@@ -3,10 +3,10 @@ package models
 import (
 	utils "TTMS_go/ttms/util"
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
+	"sort"
 	"sync"
 	"time"
 )
@@ -14,6 +14,24 @@ import (
 var mu sync.RWMutex
 
 // todo 在电影类可以加预告片的放映,图片组？？？。
+//
+//	type Movie struct {
+//		gorm.Model
+//		Picture     string
+//		Info        string
+//		Name        string
+//		Director    string
+//		Actor       string
+//		Duration    int64     //duration
+//		ReleaseTime time.Time `gorm:"type:datetime;default:null"`
+//		Money       float64
+//		Online      bool
+//		TicketNum   int     `json:"ticket_num"`
+//		Total       float64 `json:"total"`   // 电影的总分
+//		Count       int     `json:"count"`   // 评分人数
+//		Average     float64 `json:"average"` // 平均分
+//
+// }
 type Movie struct {
 	gorm.Model
 	Picture     string
@@ -21,15 +39,14 @@ type Movie struct {
 	Name        string
 	Director    string
 	Actor       string
-	Duration    int64     //duration
-	ReleaseTime time.Time `gorm:"type:datetime;default:null"`
-	Money       float64
+	Duration    int64
+	ReleaseTime time.Time `json:"release_time,omitempty" gorm:"type:datetime;default:null"`
+	Money       float64   `gorm:"default:0.0"`
 	Online      bool
 	TicketNum   int     `json:"ticket_num"`
-	Total       int     `json:"total"`   // 电影的总分
-	Count       int     `json:"count"`   // 评分人数
-	Average     float64 `json:"average"` // 平均分
-
+	Total       float64 `json:"total" gorm:"default:0.0"`
+	Count       int     `json:"count"`
+	Average     float64 `json:"average" gorm:"default:0.0"`
 }
 
 func (movie Movie) TableName() string {
@@ -46,9 +63,9 @@ func FindMovieByid(id string) Movie {
 }
 
 func Update(m Movie) {
-	mu.Lock()
-	defer mu.Unlock()
-	utils.DB.Where("id = ?", m.ID).Find(&m)
+	//mu.Lock()
+	////defer mu.Unlock()
+	//utils.DB.Where("id = ?", m.ID).Find(&m)
 	utils.DB.Save(&m)
 }
 
@@ -87,32 +104,37 @@ func DeleteMovieById(ids []string) {
 	utils.DB.Where("id in (?)", ids).Delete(&Movie{})
 }
 
-func RankingMovies(members []redis.Z) []byte {
-	str := []byte{}
-	type movieInfo struct {
-		m     Movie
-		score float64
-	}
-	tmp := &movieInfo{}
-	for _, member := range members {
-		utils.DB.Where("id = ?", member.Member).First(&tmp.m)
-		tmp.score = member.Score
-		t, _ := json.Marshal(tmp)
-		str = append(str, t...)
-	}
-	return str
+type movieInfo struct {
+	M     Movie
+	Score float64
 }
 
-func UpdateMovieMark(m Movie, IMDbScore int, key string, movieId string) Movie {
-	mu.Lock()
-	defer mu.Unlock()
+func RankingMovies(members []redis.Z) []movieInfo {
+
+	result := []movieInfo{}
+	for _, member := range members {
+		res := Movie{}
+		utils.DB.Where("id = (?)", member.Member.(string)).Find(&res)
+		result = append(result, movieInfo{
+			M:     res,
+			Score: member.Score,
+		})
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Score > result[j].Score // 降序排列
+	})
+	return result
+}
+
+func UpdateMovieMark(m Movie, IMDbScore float64, key string, movieId string) Movie {
 	//todo 事务
+	mykey := utils.Movie_Average_set
 	if err := utils.Red.ZScore(context.Background(), key, movieId).Err(); err != nil {
 		//没评价过
 		if err == redis.Nil {
 			m.Total += IMDbScore
 			m.Count++
-			m.Average = float64(m.Total) / float64(m.Count)
+			m.Average = m.Total / float64(m.Count)
 		} else {
 			fmt.Errorf("查询用户评分出现错误，err:%v", err.Error())
 		}
@@ -120,13 +142,18 @@ func UpdateMovieMark(m Movie, IMDbScore int, key string, movieId string) Movie {
 	} else {
 		//评价过
 		score, _ := utils.Red.ZScore(context.Background(), key, movieId).Result()
-		m.Total = m.Total - int(score) + IMDbScore
-		m.Average = float64(m.Total) / float64(m.Count)
+		m.Total = m.Total - score + IMDbScore
+		m.Average = m.Total / float64(m.Count)
 	}
-	utils.Red.ZAdd(context.Background(), key, &redis.Z{Member: movieId, Score: float64(IMDbScore)})
-	mykey := utils.Movie_Average_set
-	utils.Red.ZAdd(context.Background(), mykey, &redis.Z{Member: movieId, Score: float64(m.Average)})
-	Update(m)
+	utils.Red.ZAdd(context.Background(), key, &redis.Z{Member: movieId, Score: IMDbScore})
+
+	utils.Red.ZAdd(context.Background(), mykey, &redis.Z{Member: movieId, Score: m.Average})
+	fmt.Println(m.Average)
+	utils.DB.Model(&m).Where("id = ?", m.ID).Updates(map[string]interface{}{
+		"total":   m.Total,
+		"count":   m.Count,
+		"average": m.Average,
+	})
 	return m
 }
 
