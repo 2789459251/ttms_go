@@ -23,8 +23,6 @@ type UserInfo struct {
 	Sign          string    //签名
 }
 
-type stringSlice []string
-
 func (user UserInfo) TableName() string {
 	return "user_info"
 }

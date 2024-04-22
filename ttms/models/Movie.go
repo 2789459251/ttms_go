@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var mu sync.RWMutex
+
 // todo 在电影类可以加预告片的放映,图片组？？？。
 type Movie struct {
 	gorm.Model
@@ -19,21 +21,24 @@ type Movie struct {
 	Name        string
 	Director    string
 	Actor       string
-	Duration    time.Duration
-	ReleaseTime time.Time
+	Duration    int64     //duration
+	ReleaseTime time.Time `gorm:"type:datetime;default:null"`
 	Money       float64
 	Online      bool
 	TicketNum   int     `json:"ticket_num"`
 	Total       int     `json:"total"`   // 电影的总分
 	Count       int     `json:"count"`   // 评分人数
 	Average     float64 `json:"average"` // 平均分
-	mu          sync.RWMutex
+
 }
 
 func (movie Movie) TableName() string {
 	return "movie_basic"
 }
 
+func CreateMovie(movie Movie) {
+	utils.DB.Create(&movie)
+}
 func FindMovieByid(id string) Movie {
 	m := Movie{}
 	utils.DB.Where("id = ?", id).Find(&m)
@@ -41,17 +46,30 @@ func FindMovieByid(id string) Movie {
 }
 
 func Update(m Movie) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	utils.DB.Where("name = ?", m.Name).Find(&m)
+	mu.Lock()
+	defer mu.Unlock()
+	utils.DB.Where("id = ?", m.ID).Find(&m)
 	utils.DB.Save(&m)
 }
 
 func MovieList() []Movie {
 	m := []Movie{}
-	utils.DB.Find(m)
+	utils.DB.Exec("select * from movie_basic").Find(&m)
+
 	return m
 }
+
+//func (m *Movie) AfterFind(tx *gorm.DB) error {
+//	// 将数据库中存储的 JSON 字符串解码到 []string 中
+//	var actors []string
+//	json.Marshal(m.Actor)
+//	if err := json.Unmarshal(actorBytes, &actors); err != nil {
+//		return err
+//	}
+//	// 将解码后的值赋给 Movie 结构体的 Actor 字段
+//	m.Actor = actors
+//	return nil
+//}
 
 func UpcommingList() []Movie {
 	m := []Movie{}
@@ -61,7 +79,7 @@ func UpcommingList() []Movie {
 
 func HitList() []Movie {
 	m := []Movie{}
-	utils.DB.Order("score ASC").Where("release_time < ?", time.Now()).Find(&m)
+	utils.DB.Order("average ASC").Where("release_time < ?", time.Now()).Find(&m)
 	return m
 }
 
@@ -86,8 +104,8 @@ func RankingMovies(members []redis.Z) []byte {
 }
 
 func UpdateMovieMark(m Movie, IMDbScore int, key string, movieId string) Movie {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	//todo 事务
 	if err := utils.Red.ZScore(context.Background(), key, movieId).Err(); err != nil {
 		//没评价过
@@ -115,8 +133,10 @@ func UpdateMovieMark(m Movie, IMDbScore int, key string, movieId string) Movie {
 func FindMovieByIds(ids []string) []Movie {
 	movies := []Movie{}
 	for _, id := range ids {
+		fmt.Println(id)
 		movie := Movie{}
 		utils.DB.Where("id = ?", id).Find(&movie)
+		fmt.Println(movie)
 		movies = append(movies, movie)
 	}
 	return movies

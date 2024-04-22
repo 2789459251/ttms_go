@@ -42,11 +42,11 @@ func Router() *gin.Engine {
 	//电影操作
 	movieGroup := r.Group("/movie/api") //5
 	movieGroup.Use(jwtMiddleware.JWTAuthMiddleware())
-	movieGroup.POST("/addMovie", service.AddMovie)                        //上架电影
-	movieGroup.GET("/movieList", service.MovieList)                       //查询所有电影
-	movieGroup.GET("/upcoming/movieList", service.Upcoming)               //查询待映电影
-	movieGroup.GET("/hit/movieList", service.Hit)                         //查询热映电影
-	movieGroup.DELETE("/deletemoviesByid", service.DeleteMovies)          //下架电影
+	movieGroup.POST("/addMovie", service.AddMovie)                        //上架电影 ok
+	movieGroup.GET("/movieList", service.MovieList)                       //查询所有电影 ok
+	movieGroup.GET("/upcoming/movieList", service.Upcoming)               //查询待映电影 ok
+	movieGroup.GET("/hit/movieList", service.Hit)                         //查询热映电影 ok
+	movieGroup.DELETE("/deletemoviesByid", service.DeleteMovies)          //下架电影 ok
 	movieGroup.PUT("/markMovie", service.MarkMovie)                       //评分
 	movieGroup.PUT("/uploadFavorite", service.UploadFavoriteMovie)        //电影收藏
 	movieGroup.GET("/favoriteList", service.FavoriteMovieList)            //用户的收藏

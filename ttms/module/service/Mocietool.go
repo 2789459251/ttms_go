@@ -13,7 +13,7 @@ func aviliable(movie models.Movie) error {
 	if movie.Director == "" {
 		return errors.New("movie director is empty")
 	}
-	if movie.Actor == "" {
+	if len(movie.Actor) == 0 {
 		return errors.New("movie actor is empty")
 	}
 	if movie.Duration == 0 {

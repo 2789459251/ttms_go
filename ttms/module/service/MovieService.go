@@ -4,42 +4,57 @@ import (
 	"TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"strconv"
 	"strings"
+	"time"
 )
 
 //	type Movie struct {
 //		gorm.Model
-//		Info     string
-//		Name     string
-//		Director string
-//		Actor    string
-//		Score    float64	//todo 评分
-//		Duration time.Duration
+//		Picture     string
+//		Info        string
+//		Name        string
+//		Director    string
+//		Actor       []string `gorm:"type:json"`
+//		Duration    time.Duration
 //		ReleaseTime time.Time
-//		Money    float64
+//		Money       float64
+//		Online      bool
+//		TicketNum   int     `json:"ticket_num"`
+//		Total       int     `json:"total"`   // 电影的总分
+//		Count       int     `json:"count"`   // 评分人数
+//		Average     float64 `json:"average"` // 平均分
+//		mu          sync.RWMutex
 //	}
 func AddMovie(c *gin.Context) {
 	if !isLimited(c) {
 		return
 	}
+
 	movie := models.Movie{
-		Name:        c.Request.FormValue("name"),
-		Director:    c.Request.FormValue("director"),
-		Money:       float64(c.GetFloat64("money")),
-		Info:        c.Request.FormValue("info"),
-		Duration:    c.GetDuration("duration"),
-		ReleaseTime: c.GetTime("release_time"),
+		Name:     c.Request.FormValue("name"),
+		Director: c.Request.FormValue("director"),
+		Info:     c.Request.FormValue("info"),
 	}
+	models.CreateMovie(movie)
+	actors := c.Request.FormValue("actor")
+	movie.Actor = actors
+	movie.Money, _ = strconv.ParseFloat(c.Request.FormValue("money"), 64)
+	duration, _ := strconv.Atoi(c.Request.FormValue("duration"))
+	release_time, _ := strconv.Atoi(c.Request.FormValue("release_time"))
+	movie.ReleaseTime = time.Unix(int64(release_time), 0)
+	movie.Duration = int64(duration)
 	var e error
 	movie.Picture, e = upload(c.Request, c.Writer, c)
 	if e != nil {
 		utils.RespFail(c.Writer, "获取图片外链错误:"+e.Error())
 		return
 	}
-	if aviliable(movie) != nil {
-		utils.RespFail(c.Writer, "上传电影数据不可用，请重新上传")
+	if err := aviliable(movie); err != nil {
+		utils.RespFail(c.Writer, "上传电影数据不可用，请重新上传:"+err.Error())
 		return
 	}
 	models.Update(movie)
@@ -47,6 +62,7 @@ func AddMovie(c *gin.Context) {
 }
 
 func MovieList(c *gin.Context) {
+
 	m := models.MovieList()
 	utils.RespOk(c.Writer, m, "返回所有电影")
 }
@@ -68,6 +84,7 @@ func DeleteMovies(c *gin.Context) {
 	id := c.Query("id")
 	ids := strings.Split(id, " ")
 	models.DeleteMovieById(ids)
+	utils.RespOk(c.Writer, nil, "删除成功")
 }
 
 func UpdateMoviedetail(c *gin.Context) {
@@ -89,7 +106,8 @@ func UpdateMoviedetail(c *gin.Context) {
 		case "4":
 			movie.Info = c.Request.FormValue("info") //简述
 		case "5":
-			movie.Duration = c.GetDuration("duration") //时长
+			Duration, _ := strconv.Atoi(c.Request.FormValue("duration")) //时长
+			movie.Duration = int64(Duration)
 		case "6":
 			movie.ReleaseTime = c.GetTime("release_time") //发映时间
 		case "7":
@@ -108,10 +126,6 @@ func FavoriteMovieList(c *gin.Context) {
 	user := User(c)
 	id_ := strconv.Itoa(int(user.ID))
 	key := utils.User_Movie_favorite_set + id_
-	//1) "A"
-	//2) "B"
-	//3) "C"
-
 	str, err := utils.Red.SMembers(context.Background(), key).Result()
 	if err != nil {
 		utils.RespFail(c.Writer, "从redis获取缓存失败："+err.Error())
@@ -120,4 +134,76 @@ func FavoriteMovieList(c *gin.Context) {
 
 	movies := models.FindMovieByIds(str)
 	utils.RespOk(c.Writer, movies, "获得电影收藏列表")
+}
+
+// todo redis没存上
+func UploadFavoriteMovie(c *gin.Context) {
+	var flag bool
+	user := User(c)
+	movieId := c.Query("movie_id")
+	key1 := utils.Movie_user_favorite_set + movieId
+	id_ := strconv.Itoa(int(user.ID))
+	key2 := utils.User_Movie_favorite_set + id_
+	key3 := utils.Movie_ranking_sorted_set
+	err := utils.Red.Watch(context.Background(), func(tx *redis.Tx) error { //乐观锁
+		var err error
+		flag, err = utils.Red.SIsMember(context.Background(), key1, user.ID).Result()
+		if flag {
+			_, err = tx.SRem(context.Background(), key1, user.ID).Result()
+			if err != nil {
+				return err
+			}
+			_, err = tx.SRem(context.Background(), key2, movieId).Result()
+			if err != nil {
+				return err
+			}
+		} else {
+			_, err = tx.SAdd(context.Background(), key1, user.ID).Result()
+			if err != nil {
+				return err
+			}
+			_, err = tx.SAdd(context.Background(), key2, movieId).Result()
+			if err != nil {
+				return err
+			}
+		}
+		score, _ := utils.Red.SCard(context.Background(), key1).Result()
+		if errs := utils.Red.ZScore(context.Background(), key3, movieId).Err(); errs != nil {
+			if errs == redis.Nil {
+				utils.Red.ZAdd(context.Background(), key3, &redis.Z{Member: movieId, Score: float64(score)})
+			} else {
+				fmt.Errorf("查询redis缓存有误，请及时处理。err:%v", errs.Error())
+				err = errs
+			}
+		} else {
+			utils.Red.ZIncrBy(context.Background(), key3, float64(score), movieId)
+		}
+		return err
+	})
+	if err != nil {
+		utils.RespFail(c.Writer, "收藏电影失败："+err.Error())
+		return
+	}
+
+	if flag {
+		utils.RespOk(c.Writer, "", "已经取消收藏")
+		return
+	} else {
+		utils.RespOk(c.Writer, "", "已经添加到收藏")
+		return
+	}
+}
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+func FavoriteMovieRanking(c *gin.Context) {
+	key := utils.Movie_ranking_sorted_set
+	members, _ := utils.Red.ZRevRangeByScoreWithScores(context.Background(), key, &redis.ZRangeBy{
+		Min:    "-inf",
+		Max:    "+inf",
+		Offset: 0,
+		Count:  10,
+	}).Result()
+	fmt.Println(members)
+	m := models.RankingMovies(members)
+	utils.RespOk(c.Writer, string(m), "获取到收藏前十的电影，及其收藏数量。")
 }

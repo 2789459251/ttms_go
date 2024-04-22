@@ -4,11 +4,11 @@ import (
 	"TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
 	"context"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"strconv"
 	"strings"
+	"time"
 )
 
 //type Theatre struct {
@@ -69,7 +69,7 @@ func AddPlay(c *gin.Context) {
 	}
 
 	//结束时间对不对
-	p.EndTime = p.BeginTime.Add(m.Duration)
+	p.EndTime = p.BeginTime.Add(time.Duration(m.Duration) * time.Second)
 	t := models.FindTheatreByid(p.TheatreId)
 	if t.Name == "" {
 		utils.RespFail(c.Writer, "影厅不存在，请再次确认")
@@ -140,75 +140,6 @@ func BuyTicket(c *gin.Context) {
 		return
 	}
 	utils.RespOk(c.Writer, "", "购票成功")
-}
-
-func UploadFavoriteMovie(c *gin.Context) {
-	var flag bool
-	user := User(c)
-	movieId := c.Params.ByName("movie_id")
-	key1 := utils.Movie_user_favorite_set + movieId
-	id_ := strconv.Itoa(int(user.ID))
-	key2 := utils.User_Movie_favorite_set + id_
-	key3 := utils.Movie_ranking_sorted_set
-	err := utils.Red.Watch(context.Background(), func(tx *redis.Tx) error { //乐观锁
-		var err error
-		flag, err = utils.Red.SIsMember(context.Background(), key1, user.ID).Result()
-		if flag {
-			_, err = tx.SRem(context.Background(), key1, user.ID).Result()
-			if err != nil {
-				return err
-			}
-			_, err = tx.SRem(context.Background(), key2, movieId).Result()
-			if err != nil {
-				return err
-			}
-		} else {
-			_, err = tx.SAdd(context.Background(), key1, user.ID).Result()
-			if err != nil {
-				return err
-			}
-			_, err = tx.SAdd(context.Background(), key2, movieId).Result()
-			if err != nil {
-				return err
-			}
-		}
-		score, _ := utils.Red.SCard(context.Background(), key1).Result()
-		if errs := utils.Red.ZScore(context.Background(), key3, movieId).Err(); errs != nil {
-			if errs == redis.Nil {
-				utils.Red.ZAdd(context.Background(), key3, &redis.Z{Member: movieId, Score: float64(score)})
-			} else {
-				fmt.Errorf("查询redis缓存有误，请及时处理。err:%v", errs.Error())
-				err = errs
-			}
-		} else {
-			utils.Red.ZIncrBy(context.Background(), key3, float64(score), movieId)
-		}
-		return err
-	})
-	if err != nil {
-		utils.RespFail(c.Writer, "收藏电影失败："+err.Error())
-		return
-	}
-
-	if flag {
-		utils.RespOk(c.Writer, "", "已经取消收藏")
-		return
-	} else {
-		utils.RespOk(c.Writer, "", "已经添加到收藏")
-		return
-	}
-}
-
-func FavoriteMovieRanking(c *gin.Context) {
-	key := utils.Movie_ranking_sorted_set
-	members, _ := utils.Red.ZRevRangeByScoreWithScores(context.Background(), key, &redis.ZRangeBy{
-		Min:    "-inf",
-		Max:    "+inf",
-		Offset: 0,
-		Count:  10,
-	}).Result()
-	m := models.RankingMovies(members)
-	utils.RespOk(c.Writer, string(m), "获取到收藏前十的电影，及其收藏数量。")
 }
 
 // Total       int     `json:"total"`   // 电影的总分
