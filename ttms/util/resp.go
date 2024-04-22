@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -24,11 +25,13 @@ func RespOk(writer http.ResponseWriter, date interface{}, msg string) {
 func Resp(writer http.ResponseWriter, code string, data interface{}, message string) {
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(http.StatusOK)
+
 	h := H{
 		Code:    code,
 		Data:    data,
 		Message: message,
 	}
+	fmt.Println("data：", h.Data)
 	ret, err := json.Marshal(h)
 	if err != nil {
 		panic(err)
