@@ -146,17 +146,7 @@ func BuyTicket(c *gin.Context) {
 // Count       int     `json:"count"`   // 评分人数
 // Average     float64 `json:"average"` // 平均分
 // 打分	电影 评分 人数 每个人应该评论只有一次评分计算机会,不考虑错误输入
-func MarkMovie(c *gin.Context) {
-	user := User(c)
-	userId := strconv.Itoa(int(user.ID))
-	movieId := c.Params.ByName("movie_id")      //json(movieid + num + sum )= member1
-	key := utils.User_Movie_marked_set + userId //key
-	star, _ := strconv.Atoi(c.Params.ByName("star"))
-	IMDbScore := (star * 2) - 1
-	m := models.FindMovieByid(movieId)
-	m = models.UpdateMovieMark(m, IMDbScore, key, movieId)
-	utils.RespOk(c.Writer, m, "评价完成")
-}
+
 func AverageMovieRanking(c *gin.Context) {
 	key := utils.Movie_Average_set
 	members, _ := utils.Red.ZRevRangeByScoreWithScores(context.Background(), key,
@@ -167,7 +157,7 @@ func AverageMovieRanking(c *gin.Context) {
 			Count:  10,
 		}).Result()
 	result := models.RankingMovies(members)
-	utils.RespOk(c.Writer, string(result), "获取到评分前十条电影，及其评分")
+	utils.RespOk(c.Writer, result, "获取到评分前十条电影，及其评分")
 }
 
 func TicketNumRanking(c *gin.Context) {
@@ -180,5 +170,5 @@ func TicketNumRanking(c *gin.Context) {
 			Count:  10,
 		}).Result()
 	result := models.RankingMovies(members)
-	utils.RespOk(c.Writer, string(result), "获取到票房前十条电影，及其票房")
+	utils.RespOk(c.Writer, result, "获取到票房前十条电影，及其票房")
 }

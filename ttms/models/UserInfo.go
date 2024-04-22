@@ -94,3 +94,8 @@ func (u UserInfo) FindUserinfoByid(id string) (user UserInfo, err error) {
 	err = utils.DB.Where("id = ?", id).First(&user).Error
 	return
 }
+func Recharge(num float64, user UserInfo) UserInfo {
+	utils.DB.Model(&user).Update("wallet", num)
+
+	return user
+}

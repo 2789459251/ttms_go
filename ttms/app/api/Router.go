@@ -39,19 +39,19 @@ func Router() *gin.Engine {
 	snackGroup.GET("/favoriteList", service.FavoriteSnackList) //收藏零食列表 //ok
 	snackGroup.PUT("/recover", service.Recover)                //一键修复删除信息 1
 
+	r.GET("/movie/api/movieList", service.MovieList)         //查询所有电影 ok
+	r.GET("/movie/api/upcoming/movieList", service.Upcoming) //查询待映电影 ok
+	r.GET("/movie/api/hit/movieList", service.Hit)           //查询热映电影 ok
 	//电影操作
 	movieGroup := r.Group("/movie/api") //5
 	movieGroup.Use(jwtMiddleware.JWTAuthMiddleware())
 	movieGroup.POST("/addMovie", service.AddMovie)                        //上架电影 ok
-	movieGroup.GET("/movieList", service.MovieList)                       //查询所有电影 ok
-	movieGroup.GET("/upcoming/movieList", service.Upcoming)               //查询待映电影 ok
-	movieGroup.GET("/hit/movieList", service.Hit)                         //查询热映电影 ok
 	movieGroup.DELETE("/deletemoviesByid", service.DeleteMovies)          //下架电影 ok
-	movieGroup.PUT("/markMovie", service.MarkMovie)                       //评分
-	movieGroup.PUT("/uploadFavorite", service.UploadFavoriteMovie)        //电影收藏
-	movieGroup.GET("/favoriteList", service.FavoriteMovieList)            //用户的收藏
-	movieGroup.GET("/favoriteMovieRanking", service.FavoriteMovieRanking) //收藏排行榜
-	movieGroup.GET("/averageMovieRanking", service.AverageMovieRanking)   //评分排行榜
+	movieGroup.PUT("/markMovie", service.MarkMovie)                       //评分 ok
+	movieGroup.PUT("/uploadFavorite", service.UploadFavoriteMovie)        //电影收藏 ok
+	movieGroup.GET("/favoriteList", service.FavoriteMovieList)            //用户的收藏 ok
+	movieGroup.GET("/favoriteMovieRanking", service.FavoriteMovieRanking) //收藏排行榜 ok
+	movieGroup.GET("/averageMovieRanking", service.AverageMovieRanking)   //评分排行榜 ok
 	movieGroup.GET("/ticketNumRanking", service.TicketNumRanking)         //票房排行榜
 	movieGroup.PUT("/updateMoviedetail", service.UpdateMoviedetail)       //修改电影信息
 	//theatre
@@ -65,6 +65,9 @@ func Router() *gin.Engine {
 	theatreGroup.PUT("/buyTicket", service.BuyTicket)             //买票
 
 	//other
+	othersGroup := r.Group("/others/api")
+	othersGroup.Use(jwtMiddleware.JWTAuthMiddleware())
+	othersGroup.PUT("/recharge", service.Recharge)
 	//充值操作
 	return r
 }

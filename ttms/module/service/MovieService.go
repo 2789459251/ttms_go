@@ -39,7 +39,7 @@ func AddMovie(c *gin.Context) {
 		Director: c.Request.FormValue("director"),
 		Info:     c.Request.FormValue("info"),
 	}
-	models.CreateMovie(movie)
+	//models.CreateMovie(movie)
 	actors := c.Request.FormValue("actor")
 	movie.Actor = actors
 	movie.Money, _ = strconv.ParseFloat(c.Request.FormValue("money"), 64)
@@ -87,11 +87,12 @@ func DeleteMovies(c *gin.Context) {
 	utils.RespOk(c.Writer, nil, "删除成功")
 }
 
+// todo 修改哦
 func UpdateMoviedetail(c *gin.Context) {
 	if !isLimited(c) {
 		return
 	}
-	n := c.Params.ByName("Num")
+	n := c.Params.ByName("num")
 	nums := strings.Split(n, " ")
 	movieId := c.Params.ByName("movie_id")
 	movie := models.FindMovieByid(movieId)
@@ -205,5 +206,21 @@ func FavoriteMovieRanking(c *gin.Context) {
 	}).Result()
 	fmt.Println(members)
 	m := models.RankingMovies(members)
-	utils.RespOk(c.Writer, string(m), "获取到收藏前十的电影，及其收藏数量。")
+	fmt.Println("result:", m)
+	utils.RespOk(c.Writer, m, "获取到收藏前十的电影，及其收藏数量。")
+}
+func MarkMovie(c *gin.Context) {
+	user := User(c)
+	userId := strconv.Itoa(int(user.ID))
+	movieId := c.Query("movie_id")                    //json(movieid + num + sum )= member1
+	key := utils.User_Movie_marked_set + ":" + userId //key
+	star, _ := strconv.Atoi(c.Query("star"))
+	if star < 0 || star > 5 {
+		utils.RespFail(c.Writer, "注意star规范")
+		return
+	}
+	IMDbScore := float64((star * 2) - 1)
+	m := models.FindMovieByid(movieId)
+	m = models.UpdateMovieMark(m, IMDbScore, key, movieId)
+	utils.RespOk(c.Writer, m, "评价完成")
 }
