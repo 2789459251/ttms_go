@@ -22,6 +22,10 @@ type Play struct {
 	mu        sync.Mutex
 }
 
+func (play Play) TableName() string {
+	return "play_basic"
+}
+
 // todo 演出返回需要注意当前时间
 func CreatePlay(play *Play) {
 	utils.DB.Create(play)

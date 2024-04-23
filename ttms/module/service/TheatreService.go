@@ -25,10 +25,12 @@ func AddTheatre(c *gin.Context) {
 	if !isLimited(c) {
 		return
 	}
+	column, _ := strconv.Atoi(c.Request.FormValue("columns"))
+	row, _ := strconv.Atoi(c.Request.FormValue("rows"))
 	t := models.Theatre{
 		Name:  c.Request.FormValue("name"),
-		N:     c.GetInt("columns"),
-		M:     c.GetInt("rows"),
+		N:     column,
+		M:     row,
 		Inuse: 0,
 	}
 	t.Num = t.N * t.M
@@ -57,32 +59,41 @@ func AddTheatre(c *gin.Context) {
 //}
 
 func AddPlay(c *gin.Context) {
+	if !isLimited(c) {
+		return
+	}
 	p := models.Play{
 		MovieId:   c.Request.FormValue("movie_id"),
 		TheatreId: c.Request.FormValue("theatre_id"),
-		BeginTime: c.GetTime("begin_time"),
 	}
+	t, _ := strconv.Atoi(c.Request.FormValue("begin_time"))
+	p.BeginTime = time.Unix(int64(t), 64)
 	m := models.FindMovieByid(p.MovieId)
 	if m.Name == "" {
 		utils.RespFail(c.Writer, "电影不存在，请再次确认")
 		return
 	}
 
+	if p.BeginTime.Before(m.ReleaseTime) {
+		utils.RespFail(c.Writer, "未到该电影的放映时间！")
+		return
+	}
 	//结束时间对不对
 	p.EndTime = p.BeginTime.Add(time.Duration(m.Duration) * time.Second)
-	t := models.FindTheatreByid(p.TheatreId)
-	if t.Name == "" {
+
+	treatre := models.FindTheatreByid(p.TheatreId)
+	if treatre.Name == "" {
 		utils.RespFail(c.Writer, "影厅不存在，请再次确认")
 		return
 	}
-	p.Seat = make([][]int, t.N*t.M)
-	p.Num = strconv.Itoa(t.Num)
+	p.Seat = make([][]int, treatre.N*treatre.M)
+	p.Num = strconv.Itoa(treatre.Num)
 
-	if err := isTimeable(&t, p); err != nil {
+	if err := isTimeable(&treatre, p); err != nil {
 		utils.RespFail(c.Writer, "时间冲突："+err.Error()+"请检查输入")
 		return
 	}
-	models.UpdateTheatre(&t)
+	models.UpdateTheatre(&treatre)
 	models.CreatePlay(&p)
 	utils.RespOk(c.Writer, p, "演出安排成功。")
 }

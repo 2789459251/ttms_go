@@ -53,16 +53,21 @@ func Router() *gin.Engine {
 	movieGroup.GET("/favoriteMovieRanking", service.FavoriteMovieRanking) //收藏排行榜 ok
 	movieGroup.GET("/averageMovieRanking", service.AverageMovieRanking)   //评分排行榜 ok
 	movieGroup.GET("/ticketNumRanking", service.TicketNumRanking)         //票房排行榜
-	movieGroup.PUT("/updateMoviedetail", service.UpdateMoviedetail)       //修改电影信息
+	movieGroup.PUT("/updateMoviedetail", service.UpdateMoviedetail)       //修改电影信息 ok
 	//theatre
 	theatreGroup := r.Group("/theatre/api") //9
 	theatreGroup.Use(jwtMiddleware.JWTAuthMiddleware())
-	theatreGroup.POST("/addTheatre", service.AddTheatre)                //添加放映厅
-	theatreGroup.POST("/addPlay", service.AddPlay)                      //安排放映
-	theatreGroup.GET("/showPlaysByMovieId", service.ShowPlaysByMovieId) //查询某电影的放映安排
-	theatreGroup.GET("/showPlaysByTheatreId", service.ShowPlaysByTheatreId)
-	theatreGroup.GET("/showPlayDetails", service.ShowPlayDetails) // 查询电影细节
-	theatreGroup.PUT("/buyTicket", service.BuyTicket)             //买票
+	theatreGroup.POST("/addTheatre", service.AddTheatre) //添加放映厅 ok
+	//theatreGroup.POST("/addPlay", service.AddPlay)                          //安排放映
+	theatreGroup.GET("/showPlaysByMovieId", service.ShowPlaysByMovieId)     //查询某电影的放映安排 （用户）
+	theatreGroup.GET("/showPlaysByTheatreId", service.ShowPlaysByTheatreId) //查询某影厅的放映安排
+	theatreGroup.GET("/showPlayDetails", service.ShowPlayDetails)           // 查询电影细节
+	theatreGroup.PUT("/buyTicket", service.BuyTicket)                       //买票
+
+	//play
+	playGroup := r.Group("/play/api")
+	playGroup.Use(jwtMiddleware.JWTAuthMiddleware())
+	playGroup.POST("/addPlay", service.AddPlay)
 
 	//other
 	othersGroup := r.Group("/others/api")

@@ -3,6 +3,7 @@ package service
 import (
 	"TTMS_go/ttms/models"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -27,6 +28,7 @@ func aviliable(movie models.Movie) error {
 }
 
 func isTimeable(t *models.Theatre, play models.Play) error {
+	fmt.Println("ssss")
 	p := t.Plays
 	q := p
 	for p != nil {
@@ -36,15 +38,19 @@ func isTimeable(t *models.Theatre, play models.Play) error {
 		q = p
 		p = p.Next
 	}
-	if q.Play.EndTime.Add(time.Minute * 15).After(play.BeginTime) {
+	fmt.Println("aaaa")
+	if q != nil && q.Play.EndTime.Add(time.Minute*15).After(play.BeginTime) {
 		return errors.New("演出开始时间早于上一场结束时间。")
 	}
-	if q.Play.BeginTime.Before(play.EndTime.Add(time.Minute * 15)) {
+	if q != nil && q.Play.BeginTime.Before(play.EndTime.Add(time.Minute*15)) {
 		return errors.New("演出结束时间与下一场开始时间冲突")
 	}
 	tmp := &models.Node{Play: play}
+	fmt.Println("qqqq")
+	if q != nil {
+		q.Next = tmp
+		tmp.Next = p
+	}
 
-	q.Next = tmp
-	tmp.Next = p
 	return nil
 }
