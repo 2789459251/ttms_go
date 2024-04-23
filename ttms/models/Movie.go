@@ -63,8 +63,8 @@ func FindMovieByid(id string) Movie {
 }
 
 func Update(m Movie) {
-	//mu.Lock()
-	////defer mu.Unlock()
+	mu.Lock()
+	defer mu.Unlock()
 	//utils.DB.Where("id = ?", m.ID).Find(&m)
 	utils.DB.Save(&m)
 }

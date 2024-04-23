@@ -92,9 +92,9 @@ func UpdateMoviedetail(c *gin.Context) {
 	if !isLimited(c) {
 		return
 	}
-	n := c.Params.ByName("num")
+	n := c.Request.FormValue("num")
 	nums := strings.Split(n, " ")
-	movieId := c.Params.ByName("movie_id")
+	movieId := c.Request.FormValue("movie_id")
 	movie := models.FindMovieByid(movieId)
 	for _, num := range nums {
 		switch num {
@@ -103,16 +103,22 @@ func UpdateMoviedetail(c *gin.Context) {
 		case "2":
 			movie.Director = c.Request.FormValue("director") //导演
 		case "3":
-			movie.Money = float64(c.GetFloat64("money")) //单价
+			movie.Money, _ = strconv.ParseFloat(c.Request.FormValue("money"), 64) //单价
 		case "4":
 			movie.Info = c.Request.FormValue("info") //简述
 		case "5":
 			Duration, _ := strconv.Atoi(c.Request.FormValue("duration")) //时长
 			movie.Duration = int64(Duration)
 		case "6":
-			movie.ReleaseTime = c.GetTime("release_time") //发映时间
+			t, _ := strconv.Atoi(c.Request.FormValue("release_time"))
+			time_ := time.Unix(int64(t), 0)
+			movie.ReleaseTime = time_ //发映时间
 		case "7":
-			movie.Online = c.GetBool("online") //是否在院线上映
+			movie.Online, _ = strconv.ParseBool(c.Request.FormValue("online")) //是否在院线上映
+		case "8":
+
+			movie.Picture, _ = upload(c.Request, c.Writer, c)
+
 		default:
 			utils.RespFail(c.Writer, "注意规范num输入~")
 			return
