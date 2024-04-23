@@ -4,6 +4,7 @@ import (
 	"TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
 	"context"
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"strconv"
@@ -44,6 +45,13 @@ func AddTheatre(c *gin.Context) {
 	} else {
 		t.Info += "RGB基色激光厅"
 	}
+	Seat := make([][]int, 0)
+	for i := 0; i < t.M; i++ {
+		n := make([]int, t.N)
+		Seat = append(Seat, n)
+	}
+	seat, _ := json.Marshal(Seat)
+	t.Seat = string(seat)
 	models.CreateTheatre(t)
 	utils.RespOk(c.Writer, t, "添加放映厅成功")
 	return
@@ -86,8 +94,14 @@ func AddPlay(c *gin.Context) {
 		utils.RespFail(c.Writer, "影厅不存在，请再次确认")
 		return
 	}
-	p.Seat = make([][]int, treatre.N*treatre.M)
-	p.Num = strconv.Itoa(treatre.Num)
+	//Seat := make([][]int, 0)
+	//for i := 0; i < treatre.M; i++ {
+	//	n := make([]int, treatre.N)
+	//	Seat = append(Seat, n)
+	//}
+	//seat, _ := json.Marshal(Seat)
+	p.Seat = treatre.Seat
+	p.Num = treatre.Num
 
 	if err := isTimeable(&treatre, p); err != nil {
 		utils.RespFail(c.Writer, "时间冲突："+err.Error()+"请检查输入")
@@ -118,8 +132,12 @@ func ShowPlaysByTheatreId(c *gin.Context) {
 }
 
 func ShowPlayDetails(c *gin.Context) {
-	id := c.Params.ByName("play_id")
+	id := c.Query("play_id")
 	p := models.ShowPlayById(id)
+	if p.Seat == "" {
+		utils.RespFail(c.Writer, "没有查询到对应的剧目信息。")
+		return
+	}
 	m := models.FindMovieByid(p.MovieId)
 	t := models.FindTheatreByid(p.TheatreId)
 	var response []interface{}

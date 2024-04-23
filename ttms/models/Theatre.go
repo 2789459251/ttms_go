@@ -2,23 +2,20 @@ package models
 
 import (
 	utils "TTMS_go/ttms/util"
+	"encoding/json"
 	"gorm.io/gorm"
 )
 
 type Theatre struct {
 	gorm.Model
 	Name  string
-	Seat  [][]bool `gorm:"type:json"`
+	Seat  string `gorm:"type:json"`
 	N     int
 	M     int
 	Info  string
 	Inuse int //影院状态 0 1 2
 	Num   int
-	Plays *Node `gorm:"type:json"`
-}
-type Node struct {
-	Play Play
-	Next *Node
+	Plays []Play `gorm:"type:json"`
 }
 
 func (theatre Theatre) TableName() string {
@@ -32,9 +29,17 @@ func CreateTheatre(theatre Theatre) {
 func FindTheatreByid(id string) Theatre {
 	theatre := Theatre{}
 	utils.DB.Where("id = ?", id).First(&theatre)
+	var playJson string
+	utils.DB.Table("theatre_basic").Where("id = ?", id).Select("plays").Scan(&playJson)
+	json.Unmarshal([]byte(playJson), &theatre.Plays)
 	return theatre
 }
 
 func UpdateTheatre(theatre *Theatre) {
-	utils.DB.Where("id = ?", theatre.ID).Updates(theatre)
+	//序列化：
+	playJson, _ := json.Marshal(theatre.Plays)
+	utils.DB.Model(theatre).Updates(map[string]interface{}{
+		"plays": string(playJson),
+		"info":  theatre.Info,
+	})
 }

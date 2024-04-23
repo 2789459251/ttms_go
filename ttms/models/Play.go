@@ -3,6 +3,7 @@ package models
 import (
 	utils "TTMS_go/ttms/util"
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
@@ -11,15 +12,16 @@ import (
 	"time"
 )
 
+var play_mu sync.Mutex
+
 type Play struct {
 	gorm.Model
 	MovieId   string
 	TheatreId string
-	Seat      [][]int `gorm:"type:json""` //0 1 2
-	Num       string  //剩余座位数量
+	Seat      string ` gorm:"type:json"` //0 1 2//数组
+	Num       int    //剩余座位数量
 	BeginTime time.Time
 	EndTime   time.Time
-	mu        sync.Mutex
 }
 
 func (play Play) TableName() string {
@@ -28,11 +30,12 @@ func (play Play) TableName() string {
 
 // todo 演出返回需要注意当前时间
 func CreatePlay(play *Play) {
-	utils.DB.Create(play)
+	utils.DB.Create(&play)
 }
 func ShowPlaysByMovieId(id string) []Play {
 	plays := []Play{}
-	utils.DB.Where("movie_id = ? AND  begin_time > ?", id, time.Now()).Find(plays)
+	//utils.DB.Where("movie_id = ? AND  begin_time > ?", id, time.Now()).Find(plays)
+	utils.DB.Where("movie_id = ?", id).Find(plays)
 	return plays
 }
 func ShowPlaysByTheatreId(id string) []Play {
@@ -52,8 +55,11 @@ func Reserve(user UserInfo, id string, seats []Seat) error {
 	play := Play{}
 	//查座位状态//多个座位
 	utils.DB.Where("id = ?", id).Find(&play)
+	var playSeat [][]int
+	json.Unmarshal([]byte(play.Seat), &playSeat)
+
 	for _, seat := range seats {
-		if play.Seat[seat.Row-1][seat.Column-1] != 0 {
+		if playSeat[seat.Row-1][seat.Column-1] != 0 {
 			return errors.New("座位不可用或已被预定！")
 		}
 	}
@@ -74,15 +80,17 @@ func Reserve(user UserInfo, id string, seats []Seat) error {
 		}
 	}()
 	//修改//扣除
-	play.mu.Lock()
-	defer play.mu.Unlock()
+	play_mu.Lock()
+	defer play_mu.Unlock()
 	for _, seat := range seats {
-		play.Seat[seat.Row-1][seat.Column-1] = 1
+		playSeat[seat.Row-1][seat.Column-1] = 1
 	}
 	user.Wallet -= (movie.Money * float64(len(seats)))
 	movie.TicketNum += len(seats)
 	utils.DB.Save(movie)
 	//保存剧目信息
+	s_, _ := json.Marshal(playSeat)
+	play.Seat = string(s_)
 	utils.DB.Save(play)
 
 	key := utils.Movie_Ticket_Num_set

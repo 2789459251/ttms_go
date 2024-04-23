@@ -57,22 +57,21 @@ func Router() *gin.Engine {
 	//theatre
 	theatreGroup := r.Group("/theatre/api") //9
 	theatreGroup.Use(jwtMiddleware.JWTAuthMiddleware())
-	theatreGroup.POST("/addTheatre", service.AddTheatre) //添加放映厅 ok
-	//theatreGroup.POST("/addPlay", service.AddPlay)                          //安排放映
+	theatreGroup.POST("/addTheatre", service.AddTheatre)                    //添加放映厅 ok
 	theatreGroup.GET("/showPlaysByMovieId", service.ShowPlaysByMovieId)     //查询某电影的放映安排 （用户）
 	theatreGroup.GET("/showPlaysByTheatreId", service.ShowPlaysByTheatreId) //查询某影厅的放映安排
-	theatreGroup.GET("/showPlayDetails", service.ShowPlayDetails)           // 查询电影细节
+	theatreGroup.GET("/showPlayDetails", service.ShowPlayDetails)           // 查询电影细节	ok
 	theatreGroup.PUT("/buyTicket", service.BuyTicket)                       //买票
 
 	//play
 	playGroup := r.Group("/play/api")
 	playGroup.Use(jwtMiddleware.JWTAuthMiddleware())
-	playGroup.POST("/addPlay", service.AddPlay)
+	playGroup.POST("/addPlay", service.AddPlay) //添加剧目放映
 
 	//other
 	othersGroup := r.Group("/others/api")
 	othersGroup.Use(jwtMiddleware.JWTAuthMiddleware())
-	othersGroup.PUT("/recharge", service.Recharge)
+	othersGroup.PUT("/recharge", service.Recharge) // 充值 ok
 	//充值操作
 	return r
 }

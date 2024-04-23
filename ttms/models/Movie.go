@@ -14,24 +14,6 @@ import (
 var mu sync.RWMutex
 
 // todo 在电影类可以加预告片的放映,图片组？？？。
-//
-//	type Movie struct {
-//		gorm.Model
-//		Picture     string
-//		Info        string
-//		Name        string
-//		Director    string
-//		Actor       string
-//		Duration    int64     //duration
-//		ReleaseTime time.Time `gorm:"type:datetime;default:null"`
-//		Money       float64
-//		Online      bool
-//		TicketNum   int     `json:"ticket_num"`
-//		Total       float64 `json:"total"`   // 电影的总分
-//		Count       int     `json:"count"`   // 评分人数
-//		Average     float64 `json:"average"` // 平均分
-//
-// }
 type Movie struct {
 	gorm.Model
 	Picture     string
