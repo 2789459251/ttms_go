@@ -5,22 +5,13 @@ import (
 	utils "TTMS_go/ttms/util"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"strconv"
 	"strings"
 	"time"
 )
-
-//type Theatre struct {
-//	gorm.Model
-//	Name  string
-//	Seat  [][]bool `gorm:"type:json"`
-//	N     int
-//	M     int
-//	Inuse int//影院状态 0 1 2
-//	Num   int //座位数量
-//}
 
 func AddTheatre(c *gin.Context) {
 	if !isLimited(c) {
@@ -50,21 +41,12 @@ func AddTheatre(c *gin.Context) {
 		n := make([]int, t.N)
 		Seat = append(Seat, n)
 	}
-	seat, _ := json.Marshal(Seat)
-	t.Seat = string(seat)
+	t.Seat, _ = json.Marshal(Seat)
+
 	models.CreateTheatre(t)
 	utils.RespOk(c.Writer, t, "添加放映厅成功")
 	return
 }
-
-//type Play struct {
-//	gorm.Model
-//	MovieId   int
-//	TheatreId int
-//	Seat      [][]int //0 1 2
-//	Num       int     //剩余座位数量
-//	BeginTime time.Time
-//}
 
 func AddPlay(c *gin.Context) {
 	if !isLimited(c) {
@@ -113,7 +95,7 @@ func AddPlay(c *gin.Context) {
 }
 
 func ShowPlaysByMovieId(c *gin.Context) {
-	id := c.Params.ByName("movie_id")
+	id := c.Query("movie_id")
 	p := models.ShowPlaysByMovieId(id)
 	if len(p) == 0 {
 		utils.RespOk(c.Writer, "", "该电影目前没有演出～")
@@ -122,7 +104,7 @@ func ShowPlaysByMovieId(c *gin.Context) {
 	utils.RespOk(c.Writer, p, "返回电影的放映安排。")
 }
 func ShowPlaysByTheatreId(c *gin.Context) {
-	id := c.Params.ByName("theatre_id")
+	id := c.Query("theatre_id")
 	p := models.ShowPlaysByTheatreId(id)
 	if len(p) == 0 {
 		utils.RespOk(c.Writer, "", "该电影目前没有演出～")
@@ -134,7 +116,7 @@ func ShowPlaysByTheatreId(c *gin.Context) {
 func ShowPlayDetails(c *gin.Context) {
 	id := c.Query("play_id")
 	p := models.ShowPlayById(id)
-	if p.Seat == "" {
+	if len(p.Seat) == 0 {
 		utils.RespFail(c.Writer, "没有查询到对应的剧目信息。")
 		return
 	}
@@ -156,6 +138,7 @@ func BuyTicket(c *gin.Context) {
 	raw := c.PostForm("row")
 	raws := strings.Split(raw, " ")
 	user := User(c)
+	fmt.Println(user.Birthday)
 	seats := []models.Seat{}
 	for i, _ := range raws {
 		seat := models.Seat{}

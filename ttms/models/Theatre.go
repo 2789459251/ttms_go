@@ -9,7 +9,7 @@ import (
 type Theatre struct {
 	gorm.Model
 	Name  string
-	Seat  string `gorm:"type:json"`
+	Seat  []byte
 	N     int
 	M     int
 	Info  string

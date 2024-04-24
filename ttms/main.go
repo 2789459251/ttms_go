@@ -14,7 +14,8 @@ func main() {
 	//
 	//utils.DB.AutoMigrate(models2.User{})
 	//utils.DB.AutoMigrate(models2.UserInfo{})
-	//utils.DB.AutoMigrate(models2.Ticket{})
+	//utils.DB.Migrator().DropTable(models.Ticket{})
+	//utils.DB.AutoMigrate(models.Ticket{})
 	//
 	//utils.DB.Migrator().DropTable(models.Theatre{})
 	//utils.DB.AutoMigrate(models.Theatre{})

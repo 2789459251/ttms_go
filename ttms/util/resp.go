@@ -2,7 +2,6 @@ package utils
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -31,7 +30,6 @@ func Resp(writer http.ResponseWriter, code string, data interface{}, message str
 		Data:    data,
 		Message: message,
 	}
-	fmt.Println("data：", h.Data)
 	ret, err := json.Marshal(h)
 	if err != nil {
 		panic(err)

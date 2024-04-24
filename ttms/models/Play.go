@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 	"strconv"
@@ -18,7 +19,7 @@ type Play struct {
 	gorm.Model
 	MovieId   string
 	TheatreId string
-	Seat      string ` gorm:"type:json"` //0 1 2//数组
+	Seat      []byte //0 1 2//数组
 	Num       int    //剩余座位数量
 	BeginTime time.Time
 	EndTime   time.Time
@@ -35,12 +36,12 @@ func CreatePlay(play *Play) {
 func ShowPlaysByMovieId(id string) []Play {
 	plays := []Play{}
 	//utils.DB.Where("movie_id = ? AND  begin_time > ?", id, time.Now()).Find(plays)
-	utils.DB.Where("movie_id = ?", id).Find(plays)
+	utils.DB.Where("movie_id = ?", id).Find(&plays)
 	return plays
 }
 func ShowPlaysByTheatreId(id string) []Play {
 	plays := []Play{}
-	utils.DB.Where("theatre_id = ? AND  begin_time > ?", id, time.Now()).Find(plays)
+	utils.DB.Where("theatre_id = ? AND  begin_time > ?", id, time.Now()).Find(&plays)
 	return plays
 
 }
@@ -56,7 +57,7 @@ func Reserve(user UserInfo, id string, seats []Seat) error {
 	//查座位状态//多个座位
 	utils.DB.Where("id = ?", id).Find(&play)
 	var playSeat [][]int
-	json.Unmarshal([]byte(play.Seat), &playSeat)
+	json.Unmarshal(play.Seat, &playSeat)
 
 	for _, seat := range seats {
 		if playSeat[seat.Row-1][seat.Column-1] != 0 {
@@ -74,33 +75,62 @@ func Reserve(user UserInfo, id string, seats []Seat) error {
 	if tx.Error != nil {
 		return tx.Error
 	}
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
+
+	//defer func() {
+	//	//if r := recover(); r != nil {
+	//	//	tx.Rollback()
+	//	//}
+	//}()
 	//修改//扣除
-	play_mu.Lock()
-	defer play_mu.Unlock()
+	//play_mu.Lock()
+	//defer play_mu.Unlock()
 	for _, seat := range seats {
 		playSeat[seat.Row-1][seat.Column-1] = 1
 	}
 	user.Wallet -= (movie.Money * float64(len(seats)))
 	movie.TicketNum += len(seats)
-	utils.DB.Save(movie)
+	if err := tx.Save(movie).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
 	//保存剧目信息
-	s_, _ := json.Marshal(playSeat)
-	play.Seat = string(s_)
-	utils.DB.Save(play)
-
+	play.Seat, _ = json.Marshal(playSeat)
+	if err := tx.Save(play).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
 	key := utils.Movie_Ticket_Num_set
-	utils.Red.ZAdd(context.Background(), key, &redis.Z{
+	if err := utils.Red.ZAdd(context.Background(), key, &redis.Z{
 		Member: strconv.Itoa(int(movie.ID)),
 		Score:  float64(movie.TicketNum),
-	})
+	}).Err(); err != nil {
+
+		tx.Rollback()
+		return err
+	}
 	//生成票，保存到user.tacket
-	ticket := CreateTicket(play, movie, seats)
-	user.Ticket = append(user.Ticket, ticket)
-	user.RefleshUserInfo_()
+	t_ := Ticket{
+		Name:      movie.Name,
+		Num:       len(seats),
+		Begintime: play.BeginTime,
+		Endtime:   play.EndTime,
+	}
+	t_.Seat, _ = json.Marshal(seats)
+	t_.Issold = true
+	err := tx.Model(t_).Create(&t_).Error
+	fmt.Println(err)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	user.Ticket = append(user.Ticket, t_)
+	fmt.Println(user.Birthday)
+
+	if err_ := user.tx_RefleshUserInfo(tx); err_ != nil {
+		fmt.Println(err_)
+		tx.Rollback()
+		return err_
+	}
+	fmt.Println(user.Birthday)
 	return tx.Commit().Error
 }

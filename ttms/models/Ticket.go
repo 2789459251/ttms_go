@@ -2,6 +2,7 @@ package models
 
 import (
 	utils "TTMS_go/ttms/util"
+	"encoding/json"
 	"gorm.io/gorm"
 	"time"
 )
@@ -14,7 +15,7 @@ type Ticket struct {
 	//演出厅
 	Place int
 	//座位
-	Seat []Seat `gorm:"type:json"`
+	Seat []byte `gorm:"type:json"`
 	//状态
 	Issold bool
 	//影片开始结束时间
@@ -31,15 +32,15 @@ func (ticket Ticket) TableName() string {
 	return "ticket_basic"
 }
 
-func CreateTicket(play Play, movie Movie, seat []Seat) Ticket {
+func CreateTicket(play Play, movie Movie, seat []Seat) (Ticket, error) {
 	t_ := Ticket{
 		Name:      movie.Name,
 		Num:       len(seat),
 		Begintime: play.BeginTime,
 		Endtime:   play.EndTime,
 	}
-	t_.Seat = seat
+	t_.Seat, _ = json.Marshal(seat)
 	t_.Issold = true
-	utils.DB.Create(t_)
-	return t_
+	err := utils.DB.Create(&t_).Error
+	return t_, err
 }
