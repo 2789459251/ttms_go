@@ -107,7 +107,7 @@ func ShowPlaysByTheatreId(c *gin.Context) {
 	id := c.Query("theatre_id")
 	p := models.ShowPlaysByTheatreId(id)
 	if len(p) == 0 {
-		utils.RespOk(c.Writer, "", "该电影目前没有演出～")
+		utils.RespOk(c.Writer, "", "该放映厅目前没有演出～")
 		return
 	}
 	utils.RespOk(c.Writer, p, "返回影院的放映安排。")
