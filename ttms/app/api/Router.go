@@ -39,28 +39,30 @@ func Router() *gin.Engine {
 	snackGroup.GET("/favoriteList", service.FavoriteSnackList) //收藏零食列表 //ok
 	snackGroup.PUT("/recover", service.Recover)                //一键修复删除信息 1
 
-	r.GET("/movie/api/movieList", service.MovieList)         //查询所有电影 ok
-	r.GET("/movie/api/upcoming/movieList", service.Upcoming) //查询待映电影 ok
-	r.GET("/movie/api/hit/movieList", service.Hit)           //查询热映电影 ok
+	r.GET("/movie/api/movieList", service.MovieList)                       //查询所有电影 ok
+	r.GET("/movie/api/upcoming/movieList", service.Upcoming)               //查询待映电影 ok
+	r.GET("/movie/api/hit/movieList", service.Hit)                         //查询热映电影 ok
+	r.GET("/movie/api/favoriteMovieRanking", service.FavoriteMovieRanking) //收藏排行榜 ok
+	r.GET("/movie/api/averageMovieRanking", service.AverageMovieRanking)   //评分排行榜 ok
+	r.GET("/movie/api/ticketNumRanking", service.TicketNumRanking)         //票房排行榜 ok
 	//电影操作
 	movieGroup := r.Group("/movie/api") //5
 	movieGroup.Use(jwtMiddleware.JWTAuthMiddleware())
-	movieGroup.POST("/addMovie", service.AddMovie)                        //上架电影 ok
-	movieGroup.DELETE("/deletemoviesByid", service.DeleteMovies)          //下架电影 ok
-	movieGroup.PUT("/markMovie", service.MarkMovie)                       //评分 ok
-	movieGroup.PUT("/uploadFavorite", service.UploadFavoriteMovie)        //电影收藏 ok
-	movieGroup.GET("/favoriteList", service.FavoriteMovieList)            //用户的收藏 ok
-	movieGroup.GET("/favoriteMovieRanking", service.FavoriteMovieRanking) //收藏排行榜 ok
-	movieGroup.GET("/averageMovieRanking", service.AverageMovieRanking)   //评分排行榜 ok
-	movieGroup.GET("/ticketNumRanking", service.TicketNumRanking)         //票房排行榜 ok
-	movieGroup.PUT("/updateMoviedetail", service.UpdateMoviedetail)       //修改电影信息 ok
+	movieGroup.POST("/addMovie", service.AddMovie)                 //上架电影 ok
+	movieGroup.DELETE("/deletemoviesByid", service.DeleteMovies)   //下架电影 ok
+	movieGroup.PUT("/markMovie", service.MarkMovie)                //评分 ok
+	movieGroup.PUT("/uploadFavorite", service.UploadFavoriteMovie) //电影收藏 ok
+	movieGroup.GET("/favoriteList", service.FavoriteMovieList)     //用户的收藏 ok
+
+	movieGroup.PUT("/updateMoviedetail", service.UpdateMoviedetail) //修改电影信息 ok
 	//theatre
+	r.GET("/theatre/api/showPlayDetails", service.ShowPlayDetails) // 查询电影细节	ok
+
 	theatreGroup := r.Group("/theatre/api") //9
 	theatreGroup.Use(jwtMiddleware.JWTAuthMiddleware())
 	theatreGroup.POST("/addTheatre", service.AddTheatre)                    //添加放映厅 ok
 	theatreGroup.GET("/showPlaysByMovieId", service.ShowPlaysByMovieId)     //查询某电影的放映安排 （用户）
 	theatreGroup.GET("/showPlaysByTheatreId", service.ShowPlaysByTheatreId) //查询某影厅的放映安排
-	theatreGroup.GET("/showPlayDetails", service.ShowPlayDetails)           // 查询电影细节	ok
 
 	//play
 	playGroup := r.Group("/play/api")
