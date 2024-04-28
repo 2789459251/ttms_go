@@ -123,10 +123,15 @@ func Reserve(user UserInfo, id string, seats []Seat) error {
 		tx.Rollback()
 		return err
 	}
-	user.Ticket = append(user.Ticket, t_)
+	if user.Ticket == "" {
+		user.Ticket = strconv.Itoa(int(t_.ID))
+	} else {
+
+		user.Ticket = user.Ticket + " " + strconv.Itoa(int(t_.ID))
+	}
 	fmt.Println(user.Birthday)
 
-	if err_ := user.tx_RefleshUserInfo(tx); err_ != nil {
+	if err_ := user.Tx_RefleshUserInfo(tx); err_ != nil {
 		fmt.Println(err_)
 		tx.Rollback()
 		return err_

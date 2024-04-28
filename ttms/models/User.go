@@ -48,8 +48,3 @@ func FindUserByUserInfoId(id string) User {
 	utils.DB.Where("user_info_id = ?", id).First(&user)
 	return user
 }
-func RefreshUserInfo(id string, userInfo UserInfo) {
-	user := FindUserByUserInfoId(id)
-	user.UserInfo = userInfo
-	utils.DB.Updates(&user)
-}

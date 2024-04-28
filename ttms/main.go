@@ -9,6 +9,7 @@ func main() {
 	utils.InitConfig()
 	utils.InitMysql()
 	utils.InitRedis()
+	utils.EsClient()
 	//utils.DB.Migrator().DropTable(models2.User{})
 	//utils.DB.Migrator().DropTable(models2.UserInfo{})
 	//

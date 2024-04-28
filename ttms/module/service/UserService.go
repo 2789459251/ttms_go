@@ -251,8 +251,7 @@ func Profile(c *gin.Context) {
 		case "4":
 			interest := c.PostFormArray("interest")
 			interest_, _ := json.Marshal(interest)
-			fmt.Println(string(interest_))
-			userInfo.Interest = append(userInfo.Interest, string(interest_))
+			userInfo.Interest = string(interest_)
 		case "5":
 			userInfo.Sign = c.Request.FormValue("sign")
 		default:
@@ -261,7 +260,7 @@ func Profile(c *gin.Context) {
 		}
 
 	}
-	err := userInfo.RefleshUserInfo_()
+	err := userInfo.Tx_RefleshUserInfo(utils.DB)
 	if err != nil {
 		utils.RespFail(c.Writer, "修改失败："+err.Error())
 		return

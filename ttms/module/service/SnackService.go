@@ -35,12 +35,16 @@ func BuySnack(c *gin.Context) {
 	s.UpdateStock(func() (err error) {
 		s.Stock -= num
 		user.Wallet -= s.Price * float64(num)
-		user.Snack = append(user.Snack, s)
+		if user.Snack == "" {
+			user.Snack = strconv.Itoa(int(s.ID))
+		} else {
+			user.Snack = user.Snack + " " + strconv.Itoa(int(s.ID))
+		}
 		//Todo 开启事务
 		err = utils.DB.Transaction(
 			func(tx *gorm.DB) (err error) {
 				// 进行数据库操作
-				if err := user.RefleshUserInfo_(); err != nil {
+				if err := user.Tx_RefleshUserInfo(tx); err != nil {
 					// 发生错误，进行回滚
 					tx.Rollback()
 					return err

@@ -16,3 +16,9 @@ jwt:
   MaxRefresh: 86400
 root:
   Key: "asdfghjkl"
+es:
+  url: "http://127.0.0.1:9200"
+  sniff: false
+  basicauth:
+    username: "elastic"
+    password: "123456"

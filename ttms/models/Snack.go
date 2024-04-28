@@ -47,7 +47,7 @@ func QuerysnackByid(id string) (s Snack) {
 	return
 }
 func (s Snack) Refleshsnack() (err error) {
-	err = utils.DB.Updates(s).Error
+	err = utils.DB.Updates(&s).Error
 	return
 }
 func (s *Snack) GetStock() int {

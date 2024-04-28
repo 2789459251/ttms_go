@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"github.com/olivere/elastic/v7"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -15,7 +16,20 @@ import (
 var (
 	DB  *gorm.DB
 	Red *redis.Client
+	ES  *elastic.Client
 )
+
+func EsClient() {
+	client, err := elastic.NewClient(
+		elastic.SetURL(viper.GetString("es.url")),
+		elastic.SetBasicAuth(viper.GetString("es.basicauth.username"), viper.GetString("es.basicauth.password")))
+	elastic.SetSniff(viper.GetBool("es.sniff"))
+	if err != nil {
+		fmt.Println("连接失败：", err.Error())
+		return
+	}
+	ES = client
+}
 
 func InitConfig() {
 	viper.SetConfigName("app")
