@@ -1,6 +1,7 @@
 package docs
 
 import (
+	model2 "TTMS_go/ttms/models/model"
 	utils "TTMS_go/ttms/util"
 	"context"
 	"fmt"
@@ -11,13 +12,13 @@ type model interface {
 	Index() string
 }
 
-func CreateDoc(model model) {
+func CreateDoc(model model) (string, error) {
 	IndexResponse, err := utils.ES.Index().Index(model.Index()).BodyJson(model).Do(context.Background())
 	if err != nil {
 		fmt.Println("创建文档错误：", err)
-		return
+		return "", err
 	}
-	fmt.Printf("%#v", IndexResponse)
+	return IndexResponse.Id, nil
 }
 func DeleteDoc(model model, id string) {
 	deleteResponse, err := utils.ES.Delete().Index(model.Index()).Id(id).Refresh("true").Do(context.Background())
@@ -25,7 +26,7 @@ func DeleteDoc(model model, id string) {
 		fmt.Println("创建文档错误：", err)
 		return
 	}
-	fmt.Printf("%#v", deleteResponse)
+	fmt.Printf("创建文档：%#v", deleteResponse)
 }
 func DeleteDocs(model model, ids []string) {
 	bulk := utils.ES.Bulk().Index(model.Index()).Refresh("true")
@@ -40,7 +41,7 @@ func DeleteDocs(model model, ids []string) {
 		fmt.Println("批量删除文档错误：", err)
 		return
 	}
-	fmt.Println(res.Succeeded())
+	fmt.Println("批量删除文档:", res.Succeeded())
 
 }
 
@@ -55,7 +56,7 @@ func CreateDocs(models []model) {
 		fmt.Println("创建文档错误：", err)
 		return
 	}
-	fmt.Println(res.Succeeded())
+	fmt.Println("批量创建文档：", res.Succeeded())
 }
 func FindDoc(model model) {
 	//todo 注意这里可以修改
@@ -93,14 +94,15 @@ func FindDocExact(model model, name, text string) {
 	}
 }
 
-//todo 自己写！
-//func UpdateDoc(model model,id string)	 {
-//	updateRes, err := utils.ES.Update().Index(model.Index()).Id(id).Doc(map[string]interface{}{
-//		"Name": "ty",
-//	}).Do(context.Background())
-//	if err != nil {
-//		fmt.Println("更新文档错误：", err)
-//		return
-//	}
-//	fmt.Println(updateRes)
-//}
+// todo 自己写！
+func UpdateMovieDoc(model model, info model2.MovieInfo, id string) (string, error) {
+	updateRes, err := utils.ES.Update().Index(model.Index()).Id(id).Doc(map[string]interface{}{
+		"info": info,
+	}).Do(context.Background())
+	if err != nil {
+		fmt.Println("更新文档错误：", err)
+		return "", err
+	}
+	fmt.Println(updateRes.Id)
+	return updateRes.Id, nil
+}

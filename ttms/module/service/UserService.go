@@ -260,11 +260,11 @@ func Profile(c *gin.Context) {
 		}
 
 	}
-	err := userInfo.Tx_RefleshUserInfo(utils.DB)
-	if err != nil {
-		utils.RespFail(c.Writer, "修改失败："+err.Error())
-		return
-	}
+	userInfo.RefleshUserInfo_()
+	//if err != nil {
+	//	utils.RespFail(c.Writer, "修改失败："+err.Error())
+	//	return
+	//}
 	utils.RespOk(c.Writer, userInfo, "修改成功")
 	return
 }

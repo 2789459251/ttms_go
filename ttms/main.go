@@ -10,6 +10,9 @@ func main() {
 	utils.InitMysql()
 	utils.InitRedis()
 	utils.EsClient()
+
+	//索引：
+
 	//utils.DB.Migrator().DropTable(models2.User{})
 	//utils.DB.Migrator().DropTable(models2.UserInfo{})
 	//

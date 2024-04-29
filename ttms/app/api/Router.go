@@ -58,7 +58,7 @@ func Router() *gin.Engine {
 	//theatre
 	r.GET("/theatre/api/showPlayDetails", service.ShowPlayDetails) // 查询电影细节	ok
 
-	theatreGroup := r.Group("/theatre/api") //9
+	theatreGroup := r.Group("/theatre/api") //
 	theatreGroup.Use(jwtMiddleware.JWTAuthMiddleware())
 	theatreGroup.POST("/addTheatre", service.AddTheatre)                    //添加放映厅 ok
 	theatreGroup.GET("/showPlaysByMovieId", service.ShowPlaysByMovieId)     //查询某电影的放映安排 （用户）

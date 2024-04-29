@@ -4,6 +4,7 @@ import (
 	models2 "TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
 	"github.com/qiniu/go-sdk/v7/storage"
@@ -13,7 +14,8 @@ import (
 	"strconv"
 )
 
-const url_ = "http://sb1cf9mjk.hb-bkt.clouddn.com/"
+// const url_ = "http://sb1cf9mjk.hb-bkt.clouddn.com/"
+const url_ = "http://video.cdn.zy520.online/"
 
 func isMatchPhone(phone string) bool {
 	flag, _ := regexp.Match("^1[3-9]{1}\\d{9}", []byte(phone))
@@ -94,9 +96,9 @@ func upload(r *http.Request, w http.ResponseWriter, c *gin.Context) (string, err
 	formUploader := storage.NewFormUploader(&cfg)
 	ret := storage.PutRet{}
 	putExtra := storage.PutExtra{}
-	//fmt.Println(head.Size)
+	fmt.Println(head.Filename)
 	err = formUploader.Put(context.Background(), &ret, upTocken, head.Filename, file, head.Size, &putExtra)
-	return url_ + ret.Key, err
+	return url_ + head.Filename, err
 }
 
 func isLimited(c *gin.Context) bool {

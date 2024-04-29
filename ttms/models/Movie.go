@@ -1,6 +1,8 @@
 package models
 
 import (
+	"TTMS_go/ttms/models/docs"
+	"TTMS_go/ttms/models/model"
 	utils "TTMS_go/ttms/util"
 	"context"
 	"fmt"
@@ -82,22 +84,34 @@ func HitList() []Movie {
 	return m
 }
 
-func DeleteMovieById(ids []string) {
-	utils.DB.Where("id in (?)", ids).Delete(&Movie{})
+func DeleteMovieById(ids []string) ([]Movie, bool) {
+	IDS := []string{}
+	m := []Movie{}
+	utils.DB.Where("id in (?)", ids).Find(&m)
+	if len(m) == 0 {
+		return nil, false
+	}
+	utils.DB.Where("id in (?)", ids).Delete(&m)
+
+	for _, movie := range m {
+		IDS = append(IDS, movie.Info)
+	}
+	docs.DeleteDocs(model.MovieInfo{}, IDS)
+	return m, true
 }
 
-type movieInfo struct {
+type MovieWithScore struct {
 	M     Movie
 	Score float64
 }
 
-func RankingMovies(members []redis.Z) []movieInfo {
+func RankingMovies(members []redis.Z) []MovieWithScore {
 
-	result := []movieInfo{}
+	result := []MovieWithScore{}
 	for _, member := range members {
 		res := Movie{}
 		utils.DB.Where("id = (?)", member.Member.(string)).Find(&res)
-		result = append(result, movieInfo{
+		result = append(result, MovieWithScore{
 			M:     res,
 			Score: member.Score,
 		})

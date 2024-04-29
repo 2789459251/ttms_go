@@ -37,7 +37,6 @@ func (u UserInfo) RefleshUserInfo_() {
 	return
 }
 func (u UserInfo) Tx_RefleshUserInfo(tx *gorm.DB) (err error) {
-
 	err = tx.Model(u).Updates(map[string]interface{}{
 		"interest":       u.Interest,
 		"snack":          u.Snack,
@@ -51,9 +50,9 @@ func (u UserInfo) Tx_RefleshUserInfo(tx *gorm.DB) (err error) {
 		"sign":   u.Sign, //签名
 		"wallet": u.Wallet,
 	}).Error
-	if time.Time.Unix(u.Birthday) != 0 {
-		utils.DB.Model(u).Update("birthday", u.Birthday)
-	}
+	//if time.Time.Unix(u.Birthday) != 0 {
+	//	utils.DB.Model(u).Update("birthday", u.Birthday)
+	//}
 	return
 }
 func (u UserInfo) FindUserinfoByid(id string) (user UserInfo, err error) {

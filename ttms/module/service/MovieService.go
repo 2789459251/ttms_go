@@ -2,6 +2,9 @@ package service
 
 import (
 	"TTMS_go/ttms/models"
+	"TTMS_go/ttms/models/Index"
+	"TTMS_go/ttms/models/docs"
+	"TTMS_go/ttms/models/model"
 	utils "TTMS_go/ttms/util"
 	"context"
 	"fmt"
@@ -37,7 +40,6 @@ func AddMovie(c *gin.Context) {
 	movie := models.Movie{
 		Name:     c.Request.FormValue("name"),
 		Director: c.Request.FormValue("director"),
-		Info:     c.Request.FormValue("info"),
 	}
 	//models.CreateMovie(movie)
 	actors := c.Request.FormValue("actor")
@@ -53,11 +55,26 @@ func AddMovie(c *gin.Context) {
 		utils.RespFail(c.Writer, "获取图片外链错误:"+e.Error())
 		return
 	}
+
 	if err := aviliable(movie); err != nil {
 		utils.RespFail(c.Writer, "上传电影数据不可用，请重新上传:"+err.Error())
 		return
 	}
-	models.Update(movie)
+	fmt.Println(c.Request.FormValue("info"))
+	if !Index.Isexist(model.MovieInfo{}.Index()) {
+		Index.CreateIndex(model.MovieInfo{}.Index(), model.MovieInfo{}.Mapping())
+		fmt.Println("创建了movie_index的索引！")
+	}
+	movie.Info, e = docs.CreateDoc(model.MovieInfo{Info: c.Request.FormValue("info")})
+	if e != nil {
+		utils.RespFail(c.Writer, "创建info文档失败："+e.Error())
+		return
+	}
+	if movie.Name == "" || movie.Director == "" || movie.Actor == "" || movie.Info == "" {
+		utils.RespFail(c.Writer, "添加电影时，请注意：电影的名称、导演、主演、简介不能为空！")
+		return
+	}
+	models.CreateMovie(movie)
 	utils.RespOk(c.Writer, movie, "电影上架成功")
 }
 
@@ -83,8 +100,12 @@ func DeleteMovies(c *gin.Context) {
 	}
 	id := c.Query("id")
 	ids := strings.Split(id, " ")
-	models.DeleteMovieById(ids)
-	utils.RespOk(c.Writer, nil, "删除成功")
+	movies, ok := models.DeleteMovieById(ids)
+	if !ok {
+		utils.RespFail(c.Writer, "您选择删除的电影一部也存在！请检查输入！")
+		return
+	}
+	utils.RespOk(c.Writer, movies, "删除成功")
 }
 
 // todo 修改哦
@@ -92,10 +113,15 @@ func UpdateMoviedetail(c *gin.Context) {
 	if !isLimited(c) {
 		return
 	}
+	var err error
 	n := c.Request.FormValue("num")
 	nums := strings.Split(n, " ")
 	movieId := c.Request.FormValue("movie_id")
 	movie := models.FindMovieByid(movieId)
+	if movie.Name == "" {
+		utils.RespFail(c.Writer, "没有该电影，请确定电影id！")
+		return
+	}
 	for _, num := range nums {
 		switch num {
 		case "1":
@@ -105,7 +131,15 @@ func UpdateMoviedetail(c *gin.Context) {
 		case "3":
 			movie.Money, _ = strconv.ParseFloat(c.Request.FormValue("money"), 64) //单价
 		case "4":
-			movie.Info = c.Request.FormValue("info") //简述
+			info := c.Request.FormValue("info") //简述
+			if movie.Info == "" {
+				movie.Info, err = docs.CreateDoc(model.MovieInfo{Info: info})
+			} else {
+				movie.Info, err = docs.UpdateMovieDoc(model.MovieInfo{}, model.MovieInfo{Info: info}, movie.Info)
+			}
+			if err != nil {
+				break
+			}
 		case "5":
 			Duration, _ := strconv.Atoi(c.Request.FormValue("duration")) //时长
 			movie.Duration = int64(Duration)
@@ -124,7 +158,10 @@ func UpdateMoviedetail(c *gin.Context) {
 			return
 		}
 	}
-
+	if err != nil {
+		utils.RespFail(c.Writer, "数据修改发生错误："+err.Error())
+		return
+	}
 	models.Update(movie)
 	utils.RespOk(c.Writer, movie, "修改数据成功")
 }

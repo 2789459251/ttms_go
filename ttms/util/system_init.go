@@ -29,6 +29,7 @@ func EsClient() {
 		return
 	}
 	ES = client
+	fmt.Println("连接Es客户端：", ES)
 }
 
 func InitConfig() {

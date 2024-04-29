@@ -1,6 +1,8 @@
 package model
 
-type MovieInfo string
+type MovieInfo struct {
+	Info string `json:"info"`
+}
 
 func (movie MovieInfo) Index() string {
 	return "movie_index"
