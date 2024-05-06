@@ -53,7 +53,7 @@ func Router() *gin.Engine {
 	movieGroup.PUT("/markMovie", service.MarkMovie)                //评分 ok
 	movieGroup.PUT("/uploadFavorite", service.UploadFavoriteMovie) //电影收藏 ok
 	movieGroup.GET("/favoriteList", service.FavoriteMovieList)     //用户的收藏 ok
-
+	movieGroup.PUT("/reputaway", service.Reputaway)
 	movieGroup.PUT("/updateMoviedetail", service.UpdateMoviedetail) //修改电影信息 ok
 	//theatre
 	r.GET("/theatre/api/showPlayDetails", service.ShowPlayDetails) // 查询电影细节	ok

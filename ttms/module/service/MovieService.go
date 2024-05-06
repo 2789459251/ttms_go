@@ -2,9 +2,6 @@ package service
 
 import (
 	"TTMS_go/ttms/models"
-	"TTMS_go/ttms/models/Index"
-	"TTMS_go/ttms/models/docs"
-	"TTMS_go/ttms/models/model"
 	utils "TTMS_go/ttms/util"
 	"context"
 	"fmt"
@@ -15,23 +12,6 @@ import (
 	"time"
 )
 
-//	type Movie struct {
-//		gorm.Model
-//		Picture     string
-//		Info        string
-//		Name        string
-//		Director    string
-//		Actor       []string `gorm:"type:json"`
-//		Duration    time.Duration
-//		ReleaseTime time.Time
-//		Money       float64
-//		Online      bool
-//		TicketNum   int     `json:"ticket_num"`
-//		Total       int     `json:"total"`   // 电影的总分
-//		Count       int     `json:"count"`   // 评分人数
-//		Average     float64 `json:"average"` // 平均分
-//		mu          sync.RWMutex
-//	}
 func AddMovie(c *gin.Context) {
 	if !isLimited(c) {
 		return
@@ -60,16 +40,16 @@ func AddMovie(c *gin.Context) {
 		utils.RespFail(c.Writer, "上传电影数据不可用，请重新上传:"+err.Error())
 		return
 	}
-	fmt.Println(c.Request.FormValue("info"))
-	if !Index.Isexist(model.MovieInfo{}.Index()) {
-		Index.CreateIndex(model.MovieInfo{}.Index(), model.MovieInfo{}.Mapping())
-		fmt.Println("创建了movie_index的索引！")
-	}
-	movie.Info, e = docs.CreateDoc(model.MovieInfo{Info: c.Request.FormValue("info")})
-	if e != nil {
-		utils.RespFail(c.Writer, "创建info文档失败："+e.Error())
-		return
-	}
+	//if !Index.Isexist(model.MovieInfo{}.Index()) {
+	//	Index.CreateIndex(model.MovieInfo{}.Index(), model.MovieInfo{}.Mapping())
+	//	fmt.Println("创建了movie_index的索引！")
+	//}
+	//movie.Info, e = docs.CreateDoc(model.MovieInfo{Info: c.Request.FormValue("info")})
+	//if e != nil {
+	//	utils.RespFail(c.Writer, "创建info文档失败："+e.Error())
+	//	return
+	//}
+	movie.Info = c.Request.FormValue("info")
 	if movie.Name == "" || movie.Director == "" || movie.Actor == "" || movie.Info == "" {
 		utils.RespFail(c.Writer, "添加电影时，请注意：电影的名称、导演、主演、简介不能为空！")
 		return
@@ -167,6 +147,21 @@ func UpdateMoviedetail(c *gin.Context) {
 	utils.RespOk(c.Writer, movie, "修改数据成功")
 }
 
+func Reputaway(c *gin.Context) {
+	id := c.Query("id")
+	if !isLimited(c) {
+		return
+	}
+	var movie models.Movie
+	utils.DB.Raw("select * from movie_basic where id = ?", id).Scan(&movie)
+
+	if movie.Name == "" {
+		utils.RespFail(c.Writer, "没有id为"+id+"的零食!")
+		return
+	}
+	utils.DB.Exec("UPDATE `movie_basic` SET `deleted_at`= NULL WHERE `deleted_at` IS NOT NULL AND `id`=?", id)
+	utils.RespOk(c.Writer, nil, "ok")
+}
 func FavoriteMovieList(c *gin.Context) {
 	user := User(c)
 	id_ := strconv.Itoa(int(user.ID))
