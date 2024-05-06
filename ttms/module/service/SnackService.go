@@ -72,6 +72,10 @@ func BuySnack(c *gin.Context) {
 
 func ShowSnacks(c *gin.Context) {
 	snack := models2.Showsnacks()
+	if snack == nil {
+		utils.RespFail(c.Writer, "暂无零食条目信息")
+		return
+	}
 	utils.RespOk(c.Writer, snack, "返回所有零食")
 }
 
@@ -83,6 +87,10 @@ func SearchSnack(c *gin.Context) {
 		return
 	}
 	snack := models2.SearchSnack(name)
+	if len(snack) == 0 {
+		utils.RespFail(c.Writer, "没有符合要求的零食")
+		return
+	}
 	utils.RespOk(c.Writer, snack, "返回相关零食")
 }
 
@@ -146,7 +154,7 @@ func Remove(c *gin.Context) {
 		return
 	}
 	if err := models2.DeleteSnackByid(id); err != nil {
-		utils.RespFail(c.Writer, "下架商品出错，请联系系统维护人员")
+		utils.RespFail(c.Writer, "下架商品出错，请联系系统维护人员:"+err.Error())
 		return
 	}
 	utils.RespOk(c.Writer, id, "下架成功")
@@ -159,7 +167,7 @@ func Removes(c *gin.Context) {
 	}
 	namekey := c.Request.FormValue("namekey")
 	if err := models2.DeleteSnackByNamekey(namekey); err != nil {
-		utils.RespFail(c.Writer, "下架商品出错，请联系系统维护人员")
+		utils.RespFail(c.Writer, "下架商品出错，请联系系统维护人员:"+err.Error())
 		return
 	}
 
@@ -216,18 +224,7 @@ func Recover(c *gin.Context) {
 	utils.DB.Exec("UPDATE `snack_basic` SET `deleted_at`= NULL WHERE `deleted_at` IS NOT NULL")
 	utils.RespOk(c.Writer, nil, "ok")
 }
-
-//	type Snack struct {
-//		gorm.Model
-//		mu      sync.RWMutex
-//		Name    string
-//		Picture string
-//		Info    string
-//		Stock   int     //库存量
-//		Price   float64 //价格
-//	}
 func UpdateSnack(c *gin.Context) {
-	//todo 文件待开发，加入ES存储功能
 	if !isLimited(c) {
 		return
 	}
@@ -239,7 +236,14 @@ func UpdateSnack(c *gin.Context) {
 	}
 	var err error
 	num := c.Request.FormValue("num")
-	nums := strings.Split(num, " ")
+	if num == "" {
+		utils.RespFail(c.Writer, "输入为无效，请重新输入")
+		return
+	}
+	var nums []string
+
+	nums = strings.Split(num, " ")
+
 	for _, num_ := range nums {
 		switch num_ {
 		case "1":

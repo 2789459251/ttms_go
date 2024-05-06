@@ -27,17 +27,17 @@ func Router() *gin.Engine {
 	snackGroup := r.Group("/snack/api") //9
 	snackGroup.Use(jwtMiddleware.JWTAuthMiddleware())
 	//零食操作
-	snackGroup.POST("/buy", service.BuySnack)                  //购买
-	snackGroup.POST("/putaway", service.Putaway)               //上架 1
-	snackGroup.GET("/getsnackList", service.ShowSnacks)        //查询零食列表
-	snackGroup.GET("/search", service.SearchSnack)             //搜索特定零食
+	snackGroup.POST("/buy", service.BuySnack)                  //购买 ok
+	snackGroup.POST("/putaway", service.Putaway)               //上架 ok
+	snackGroup.GET("/getsnackList", service.ShowSnacks)        //查询零食列表 ok
+	snackGroup.GET("/search", service.SearchSnack)             //搜索特定零食 ok
 	snackGroup.GET("/query", service.Getdetail)                //根据id查询
-	snackGroup.DELETE("/removeByid", service.Remove)           //下架by——id 1
-	snackGroup.DELETE("/removeByNamekey", service.Removes)     //下架by--name关键字 1
-	snackGroup.PUT("/uploadFavorite", service.UploadFavorite)  //零食加入收藏
-	snackGroup.PUT("/updeteSnack", service.UpdateSnack)        //修改零食信息 1
-	snackGroup.GET("/favoriteList", service.FavoriteSnackList) //收藏零食列表 //ok
-	snackGroup.PUT("/recover", service.Recover)                //一键修复删除信息 1
+	snackGroup.DELETE("/removeByid", service.Remove)           //下架by——id
+	snackGroup.DELETE("/removeByNamekey", service.Removes)     //下架by--name关键字
+	snackGroup.PUT("/uploadFavorite", service.UploadFavorite)  //零食加入收藏 ok
+	snackGroup.PUT("/updeteSnack", service.UpdateSnack)        //修改零食信息
+	snackGroup.GET("/favoriteList", service.FavoriteSnackList) //收藏零食列表 ok
+	snackGroup.PUT("/recover", service.Recover)                //一键修复删除信息
 
 	r.GET("/movie/api/movieList", service.MovieList)                       //查询所有电影 ok-
 	r.GET("/movie/api/upcoming/movieList", service.Upcoming)               //查询待映电影 ok-

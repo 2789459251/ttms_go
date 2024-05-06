@@ -2,6 +2,7 @@ package models
 
 import (
 	utils "TTMS_go/ttms/util"
+	"errors"
 	"fmt"
 	"gorm.io/gorm"
 	"log"
@@ -68,11 +69,17 @@ func DeleteSnackByid(id int) error {
 	id_str := strconv.Itoa(id)
 	s := QuerysnackByid(id_str)
 	ss := []Snack{}
+	if s.Name == "" {
+		return errors.New("没有id为" + id_str + "的零食!")
+	}
 	ss = append(ss, s)
 	return utils.DB.Delete(ss).Error
 }
 func DeleteSnackByNamekey(nameKey string) error {
 	snacks := SearchSnack(nameKey)
+	if len(snacks) == 0 {
+		return errors.New("没有name包含" + nameKey + "关键字的零食!")
+	}
 	return utils.DB.Delete(snacks).Error
 }
 func (s *Snack) RefreshSnack() {
