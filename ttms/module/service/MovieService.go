@@ -132,14 +132,15 @@ func UpdateMoviedetail(c *gin.Context) {
 			movie.Money, _ = strconv.ParseFloat(c.Request.FormValue("money"), 64) //单价
 		case "4":
 			info := c.Request.FormValue("info") //简述
-			if movie.Info == "" {
-				movie.Info, err = docs.CreateDoc(model.MovieInfo{Info: info})
-			} else {
-				movie.Info, err = docs.UpdateMovieDoc(model.MovieInfo{}, model.MovieInfo{Info: info}, movie.Info)
-			}
-			if err != nil {
-				break
-			}
+			//if movie.Info == "" {
+			//	movie.Info, err = docs.CreateDoc(model.MovieInfo{Info: info})
+			//} else {
+			//	movie.Info, err = docs.UpdateMovieDoc(model.MovieInfo{}, model.MovieInfo{Info: info}, movie.Info)
+			//}
+			//if err != nil {
+			//	break
+			//}
+			movie.Info = info
 		case "5":
 			Duration, _ := strconv.Atoi(c.Request.FormValue("duration")) //时长
 			movie.Duration = int64(Duration)

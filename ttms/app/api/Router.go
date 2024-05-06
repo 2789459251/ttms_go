@@ -21,7 +21,7 @@ func Router() *gin.Engine {
 	userGroup.GET("/refreshToken", jwtMiddleware.RefreshHandler)
 	userGroup.PUT("/admin", service.Admin)
 	userGroup.POST("/profile", service.Profile)
-	userGroup.GET("/detail", service.UserDetail) //ok
+	userGroup.GET("/detail", service.UserDetail)
 	//登出
 	//userGroup.GET("/logout",service.Logout)
 	snackGroup := r.Group("/snack/api") //9
@@ -39,9 +39,9 @@ func Router() *gin.Engine {
 	snackGroup.GET("/favoriteList", service.FavoriteSnackList) //收藏零食列表 //ok
 	snackGroup.PUT("/recover", service.Recover)                //一键修复删除信息 1
 
-	r.GET("/movie/api/movieList", service.MovieList)                       //查询所有电影 ok
-	r.GET("/movie/api/upcoming/movieList", service.Upcoming)               //查询待映电影 ok
-	r.GET("/movie/api/hit/movieList", service.Hit)                         //查询热映电影 ok
+	r.GET("/movie/api/movieList", service.MovieList)                       //查询所有电影 ok-
+	r.GET("/movie/api/upcoming/movieList", service.Upcoming)               //查询待映电影 ok-
+	r.GET("/movie/api/hit/movieList", service.Hit)                         //查询热映电影 ok-
 	r.GET("/movie/api/favoriteMovieRanking", service.FavoriteMovieRanking) //收藏排行榜 ok
 	r.GET("/movie/api/averageMovieRanking", service.AverageMovieRanking)   //评分排行榜 ok
 	r.GET("/movie/api/ticketNumRanking", service.TicketNumRanking)         //票房排行榜 ok

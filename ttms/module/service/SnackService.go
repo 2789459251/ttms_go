@@ -233,6 +233,11 @@ func UpdateSnack(c *gin.Context) {
 	}
 	snackId := c.Request.FormValue("snack_id")
 	snack := models2.QuerysnackByid(snackId)
+	if snack.Name == "" {
+		utils.RespFail(c.Writer, "注意输入snack_id,数据库无相关信息")
+		return
+	}
+	var err error
 	num := c.Request.FormValue("num")
 	nums := strings.Split(num, " ")
 	for _, num_ := range nums {
@@ -244,15 +249,21 @@ func UpdateSnack(c *gin.Context) {
 		case "3":
 			snack.Picture, _ = upload(c.Request, c.Writer, c)
 		case "4":
-			snack.Stock = c.GetInt("stock")
+			snack.Stock, err = strconv.Atoi(c.Request.FormValue("stock"))
 		case "5":
-			snack.Price = c.GetFloat64("price")
+			snack.Price, err = strconv.ParseFloat(c.Request.FormValue("price"), 64)
 		default:
 			utils.RespFail(c.Writer, "输入不规范，请规范输入")
 			return
 		}
+		if err != nil {
+			break
+		}
 	}
-
+	if err != nil {
+		utils.RespFail(c.Writer, "零食信息更新出错，原因："+err.Error())
+		return
+	}
 	snack.RefreshSnack()
 	utils.RespOk(c.Writer, snack, "成功修改零食的信息")
 }

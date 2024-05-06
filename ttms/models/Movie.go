@@ -1,8 +1,6 @@
 package models
 
 import (
-	"TTMS_go/ttms/models/docs"
-	"TTMS_go/ttms/models/model"
 	utils "TTMS_go/ttms/util"
 	"context"
 	"fmt"
@@ -56,7 +54,14 @@ func Update(m Movie) {
 func MovieList() []Movie {
 	m := []Movie{}
 	utils.DB.Exec("select * from movie_basic").Find(&m)
-
+	//for j, movie := range m {
+	//	if movie.Info != "" {
+	//		res, _ := docs.FindDocById(utils.ES, model.MovieInfo{}.Index(), movie.Info)
+	//		movieinfo := &model.MovieInfo{}
+	//		json.Unmarshal(res, &movieinfo)
+	//		m[j].Info = movieinfo.Info
+	//	}
+	//}
 	return m
 }
 
@@ -75,17 +80,33 @@ func MovieList() []Movie {
 func UpcommingList() []Movie {
 	m := []Movie{}
 	utils.DB.Order("release_time ASC").Where("release_time  > ?", time.Now()).Find(&m)
+	//for j, movie := range m {
+	//	if movie.Info != "" {
+	//		res, _ := docs.FindDocById(utils.ES, model.MovieInfo{}.Index(), movie.Info)
+	//		movieinfo := &model.MovieInfo{}
+	//		json.Unmarshal(res, &movieinfo)
+	//		m[j].Info = movieinfo.Info
+	//	}
+	//}
 	return m
 }
 
 func HitList() []Movie {
 	m := []Movie{}
 	utils.DB.Order("average ASC").Where("release_time < ?", time.Now()).Find(&m)
+	//for j, movie := range m {
+	//	if movie.Info != "" {
+	//		res, _ := docs.FindDocById(utils.ES, model.MovieInfo{}.Index(), movie.Info)
+	//		movieinfo := &model.MovieInfo{}
+	//		json.Unmarshal(res, &movieinfo)
+	//		m[j].Info = movieinfo.Info
+	//	}
+	//}
 	return m
 }
 
 func DeleteMovieById(ids []string) ([]Movie, bool) {
-	IDS := []string{}
+	//IDS := []string{}
 	m := []Movie{}
 	utils.DB.Where("id in (?)", ids).Find(&m)
 	if len(m) == 0 {
@@ -93,10 +114,10 @@ func DeleteMovieById(ids []string) ([]Movie, bool) {
 	}
 	utils.DB.Where("id in (?)", ids).Delete(&m)
 
-	for _, movie := range m {
-		IDS = append(IDS, movie.Info)
-	}
-	docs.DeleteDocs(model.MovieInfo{}, IDS)
+	//for _, movie := range m {
+	//	IDS = append(IDS, movie.Info)
+	//}
+	//docs.DeleteDocs(model.MovieInfo{}, IDS)
 	return m, true
 }
 
