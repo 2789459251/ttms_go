@@ -23,7 +23,7 @@ func main() {
 	////
 	//utils.DB.Migrator().DropTable(models.Theatre{})
 	//utils.DB.AutoMigrate(models.Theatre{})
-	//
+	////
 	//utils.DB.Migrator().DropTable(models.Play{})
 	//utils.DB.AutoMigrate(models.Play{})
 	//

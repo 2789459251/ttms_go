@@ -3,14 +3,8 @@ package service
 import (
 	"TTMS_go/ttms/models"
 	utils "TTMS_go/ttms/util"
-	"context"
-	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
 	"strconv"
-	"strings"
-	"time"
 )
 
 func AddTheatre(c *gin.Context) {
@@ -41,146 +35,29 @@ func AddTheatre(c *gin.Context) {
 		n := make([]int, t.N)
 		Seat = append(Seat, n)
 	}
-	t.Seat, _ = json.Marshal(Seat)
-
+	//seat, _ := json.Marshal(Seat)
+	t.Seat, _ = models.ConvertToString(Seat)
 	models.CreateTheatre(t)
 	utils.RespOk(c.Writer, t, "添加放映厅成功")
 	return
 }
-
-func AddPlay(c *gin.Context) {
+func RemoveTheatre(c *gin.Context) {
 	if !isLimited(c) {
 		return
 	}
-	p := models.Play{
-		MovieId:   c.Request.FormValue("movie_id"),
-		TheatreId: c.Request.FormValue("theatre_id"),
-	}
-	t, _ := strconv.Atoi(c.Request.FormValue("begin_time"))
-	p.BeginTime = time.Unix(int64(t), 64)
-	m := models.FindMovieByid(p.MovieId)
-	if m.Name == "" {
-		utils.RespFail(c.Writer, "电影不存在，请再次确认")
-		return
-	}
-
-	if p.BeginTime.Before(m.ReleaseTime) {
-		utils.RespFail(c.Writer, "未到该电影的放映时间！")
-		return
-	}
-	//结束时间对不对
-	p.EndTime = p.BeginTime.Add(time.Duration(m.Duration) * time.Second)
-
-	treatre := models.FindTheatreByid(p.TheatreId)
-	if treatre.Name == "" {
-		utils.RespFail(c.Writer, "影厅不存在，请再次确认")
-		return
-	}
-	//Seat := make([][]int, 0)
-	//for i := 0; i < treatre.M; i++ {
-	//	n := make([]int, treatre.N)
-	//	Seat = append(Seat, n)
-	//}
-	//seat, _ := json.Marshal(Seat)
-	p.Seat = treatre.Seat
-	p.Num = treatre.Num
-
-	if err := isTimeable(&treatre, p); err != nil {
-		utils.RespFail(c.Writer, "时间冲突："+err.Error()+"请检查输入")
-		return
-	}
-	models.UpdateTheatre(&treatre)
-	models.CreatePlay(&p)
-	utils.RespOk(c.Writer, p, "演出安排成功。")
-}
-
-func ShowPlaysByMovieId(c *gin.Context) {
-	id := c.Query("movie_id")
-	p := models.ShowPlaysByMovieId(id)
-	if len(p) == 0 {
-		utils.RespOk(c.Writer, "", "该电影目前没有演出～")
-		return
-	}
-	utils.RespOk(c.Writer, p, "返回电影的放映安排。")
-}
-func ShowPlaysByTheatreId(c *gin.Context) {
-	id := c.Query("theatre_id")
-	p := models.ShowPlaysByTheatreId(id)
-	if len(p) == 0 {
-		utils.RespOk(c.Writer, "", "该放映厅目前没有演出～")
-		return
-	}
-	utils.RespOk(c.Writer, p, "返回影院的放映安排。")
-}
-
-func ShowPlayDetails(c *gin.Context) {
-	id := c.Query("play_id")
-	p := models.ShowPlayById(id)
-	if len(p.Seat) == 0 {
-		utils.RespFail(c.Writer, "没有查询到对应的剧目信息。")
-		return
-	}
-	m := models.FindMovieByid(p.MovieId)
-	t := models.FindTheatreByid(p.TheatreId)
-	var response []interface{}
-	response = append(response, p)
-	response = append(response, m)
-	response = append(response, t)
-
-	utils.RespOk(c.Writer, response, "获得放映场次具体数据")
-}
-
-// kafka
-func BuyTicket(c *gin.Context) {
-	playId := c.PostForm("play_id")
-	column := c.Request.FormValue("column")
-	columns := strings.Split(column, " ")
-	raw := c.PostForm("row")
-	raws := strings.Split(raw, " ")
-	user := User(c)
-	fmt.Println(user.Birthday)
-	seats := []models.Seat{}
-	for i, _ := range raws {
-		seat := models.Seat{}
-		seat.Column, _ = strconv.Atoi(columns[i])
-		seat.Row, _ = strconv.Atoi(raws[i])
-		seats = append(seats, seat)
-	}
-	err := models.Reserve(user, playId, seats)
+	id := c.Request.FormValue("id")
+	err := models.DeleteTheatre(id)
 	if err != nil {
-		utils.RespFail(c.Writer, "发生err :"+err.Error())
+		utils.RespFail(c.Writer, "删除失败:"+err.Error())
 		return
 	}
-	utils.RespOk(c.Writer, "", "购票成功")
+	utils.RespOk(c.Writer, "", "删除成功")
 }
-
-// Total       int     `json:"total"`   // 电影的总分
-// Count       int     `json:"count"`   // 评分人数
-// Average     float64 `json:"average"` // 平均分
-// 打分	电影 评分 人数 每个人应该评论只有一次评分计算机会,不考虑错误输入
-
-func AverageMovieRanking(c *gin.Context) {
-	key := utils.Movie_Average_set
-	members, _ := utils.Red.ZRevRangeByScoreWithScores(context.Background(), key,
-		&redis.ZRangeBy{
-			Min:    "-inf",
-			Max:    "+inf",
-			Offset: 0,
-			Count:  10,
-		}).Result()
-	result := models.RankingMovies(members)
-	utils.RespOk(c.Writer, result, "获取到评分前十条电影，及其评分")
-}
-
-func TicketNumRanking(c *gin.Context) {
-	key := utils.Movie_Ticket_Num_set
-	members, _ := utils.Red.ZRevRangeByScoreWithScores(context.Background(), key,
-		&redis.ZRangeBy{
-			Min:    "-inf",
-			Max:    "+inf",
-			Offset: 0,
-			Count:  10,
-		}).Result()
-	result := models.RankingMovies(members)
-	utils.RespOk(c.Writer, result, "获取到票房前十条电影，及其票房")
+func GetAllTheatre(c *gin.Context) {
+	t := models.FindAllTheatre()
+	if len(t) == 0 {
+		utils.RespFail(c.Writer, "尚未添加放映厅")
+		return
+	}
+	utils.RespOk(c.Writer, t, "返回所有放映厅")
 }

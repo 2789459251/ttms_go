@@ -132,6 +132,9 @@ func RankingMovies(members []redis.Z) []MovieWithScore {
 	for _, member := range members {
 		res := Movie{}
 		utils.DB.Where("id = (?)", member.Member.(string)).Find(&res)
+		if res.Name == "" {
+			break
+		}
 		result = append(result, MovieWithScore{
 			M:     res,
 			Score: member.Score,
@@ -177,10 +180,11 @@ func UpdateMovieMark(m Movie, IMDbScore float64, key string, movieId string) Mov
 func FindMovieByIds(ids []string) []Movie {
 	movies := []Movie{}
 	for _, id := range ids {
-		fmt.Println(id)
 		movie := Movie{}
 		utils.DB.Where("id = ?", id).Find(&movie)
-		fmt.Println(movie)
+		if movie.Name == "" {
+			break
+		}
 		movies = append(movies, movie)
 	}
 	return movies

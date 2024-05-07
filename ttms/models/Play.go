@@ -9,6 +9,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -19,7 +20,7 @@ type Play struct {
 	gorm.Model
 	MovieId   string
 	TheatreId string
-	Seat      []byte //0 1 2//数组
+	Seat      string //0 1 2//数组
 	Num       int    //剩余座位数量
 	BeginTime time.Time
 	EndTime   time.Time
@@ -30,8 +31,9 @@ func (play Play) TableName() string {
 }
 
 // todo 演出返回需要注意当前时间
-func CreatePlay(play *Play) {
+func CreatePlay(play *Play) Play {
 	utils.DB.Create(&play)
+	return *play
 }
 func ShowPlaysByMovieId(id string) []Play {
 	plays := []Play{}
@@ -50,14 +52,23 @@ func ShowPlayById(id string) *Play {
 	utils.DB.Where("id = ?", id).Find(p)
 	return p
 }
+func FindPlayByIds(ids []string) []Play {
+	var plays []Play
+	id_ := strings.Join(ids, ",")
+	fmt.Println("qq:", id_)
+	query := "id IN (?) AND `play_basic`.`deleted_at` IS NULL"
+	utils.DB.Where(query, id_).Find(&plays)
+	return plays
+}
 
 // todo kafka,websocket
 func Reserve(user UserInfo, id string, seats []Seat) error {
 	play := Play{}
 	//查座位状态//多个座位
 	utils.DB.Where("id = ?", id).Find(&play)
-	var playSeat [][]int
-	json.Unmarshal(play.Seat, &playSeat)
+	playSeat, err := ConvertTo2DIntSlice(play.Seat)
+
+	//json.Unmarshal(play.Seat, &playSeat)
 
 	for _, seat := range seats {
 		if playSeat[seat.Row-1][seat.Column-1] != 0 {
@@ -89,13 +100,14 @@ func Reserve(user UserInfo, id string, seats []Seat) error {
 	}
 	user.Wallet -= (movie.Money * float64(len(seats)))
 	movie.TicketNum += len(seats)
-	if err := tx.Save(movie).Error; err != nil {
+	if err = tx.Save(movie).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	//保存剧目信息
-	play.Seat, _ = json.Marshal(playSeat)
-	if err := tx.Save(play).Error; err != nil {
+	//play.Seat, _ = json.Marshal(playSeat)
+	play.Seat, _ = ConvertToString(playSeat)
+	if err = tx.Save(play).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -117,7 +129,7 @@ func Reserve(user UserInfo, id string, seats []Seat) error {
 	}
 	t_.Seat, _ = json.Marshal(seats)
 	t_.Issold = true
-	err := tx.Model(t_).Create(&t_).Error
+	err = tx.Model(t_).Create(&t_).Error
 	fmt.Println(err)
 	if err != nil {
 		tx.Rollback()

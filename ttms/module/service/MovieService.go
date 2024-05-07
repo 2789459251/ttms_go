@@ -243,10 +243,11 @@ func FavoriteMovieRanking(c *gin.Context) {
 		Offset: 0,
 		Count:  10,
 	}).Result()
-	fmt.Println(members)
 	m := models.RankingMovies(members)
-	fmt.Println("result:", m)
-	utils.RespOk(c.Writer, m, "获取到收藏前十的电影，及其收藏数量。")
+	if len(m) > 3 {
+		m = m[:3]
+	}
+	utils.RespOk(c.Writer, m, "获取到收藏前3的电影，及其收藏数量。")
 }
 func MarkMovie(c *gin.Context) {
 	user := User(c)
@@ -262,4 +263,36 @@ func MarkMovie(c *gin.Context) {
 	m := models.FindMovieByid(movieId)
 	m = models.UpdateMovieMark(m, IMDbScore, key, movieId)
 	utils.RespOk(c.Writer, m, "评价完成")
+}
+
+func AverageMovieRanking(c *gin.Context) {
+	key := utils.Movie_Average_set
+	members, _ := utils.Red.ZRevRangeByScoreWithScores(context.Background(), key,
+		&redis.ZRangeBy{
+			Min:    "-inf",
+			Max:    "+inf",
+			Offset: 0,
+			Count:  10,
+		}).Result()
+	result := models.RankingMovies(members)
+	if len(result) > 3 {
+		result = result[:3]
+	}
+	utils.RespOk(c.Writer, result, "获取到评分前3条电影，及其评分")
+}
+
+func TicketNumRanking(c *gin.Context) {
+	key := utils.Movie_Ticket_Num_set
+	members, _ := utils.Red.ZRevRangeByScoreWithScores(context.Background(), key,
+		&redis.ZRangeBy{
+			Min:    "-inf",
+			Max:    "+inf",
+			Offset: 0,
+			Count:  10,
+		}).Result()
+	result := models.RankingMovies(members)
+	if len(result) > 3 {
+		result = result[:3]
+	}
+	utils.RespOk(c.Writer, result, "获取到票房前3条电影，及其票房")
 }
