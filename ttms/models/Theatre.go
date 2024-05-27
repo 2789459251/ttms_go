@@ -34,7 +34,7 @@ func FindAllTheatre() []Theatre {
 func FindTheatreByid(id string) Theatre {
 	theatre := Theatre{}
 	utils.DB.Where("id = ?", id).First(&theatre)
-	utils.DB.Raw("SELECT * FROM theatre_basic WHERE id = ?", id).Scan(&theatre)
+	//utils.DB.Raw("SELECT * FROM theatre_basic WHERE id = ?", id).Scan(&theatre)
 	return theatre
 }
 

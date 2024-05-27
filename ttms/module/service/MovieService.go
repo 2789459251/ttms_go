@@ -88,6 +88,17 @@ func DeleteMovies(c *gin.Context) {
 	utils.RespOk(c.Writer, movies, "删除成功")
 }
 
+func MovieDetail(c *gin.Context) {
+	idStr := c.Query("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		utils.RespFail(c.Writer, "请检查输入格式!")
+		return
+	}
+	movie := models.FindMovieById(id)
+	utils.RespOk(c.Writer, movie, "返回电影细节信息")
+}
+
 // todo 修改哦
 func UpdateMoviedetail(c *gin.Context) {
 	if !isLimited(c) {

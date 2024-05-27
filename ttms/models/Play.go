@@ -38,7 +38,7 @@ func CreatePlay(play *Play) Play {
 func ShowPlaysByMovieId(id string) []Play {
 	plays := []Play{}
 	//utils.DB.Where("movie_id = ? AND  begin_time > ?", id, time.Now()).Find(plays)
-	utils.DB.Where("movie_id = ?", id).Find(&plays)
+	utils.DB.Model(Play{}).Where("movie_id = ?", id).Find(&plays)
 	return plays
 }
 func ShowPlaysByTheatreId(id string) []Play {

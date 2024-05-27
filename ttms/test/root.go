@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-const url_ = "http://sb1cf9mjk.hb-bkt.clouddn.com/"
+const url_ = "http://video.cdn.zy520.online/"
 
 func Upload(c *gin.Context) {
 

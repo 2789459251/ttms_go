@@ -189,3 +189,9 @@ func FindMovieByIds(ids []string) []Movie {
 	}
 	return movies
 }
+
+func FindMovieById(id int) Movie {
+	movie := Movie{}
+	utils.DB.Where("id = ?", id).Find(&movie)
+	return movie
+}

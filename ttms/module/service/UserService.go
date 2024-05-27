@@ -59,7 +59,7 @@ func CreateUser(c *gin.Context) {
 		//c.Redirect(http.StatusMovedPermanently, "/user/api/loginByPassword")
 		c.JSON(http.StatusOK, gin.H{
 			"code":    0, //成功
-			"message": "redirect_url:/user/api/loginByPassword",
+			"message": "登陆成功",
 			"data":    user,
 		})
 		return

@@ -10,14 +10,29 @@ import (
 	"time"
 )
 
+type PlayWithTheatre struct {
+	Play        models.Play
+	TheatreName string
+	MovieName   string
+}
+
 func ShowPlaysByMovieId(c *gin.Context) {
 	id := c.Query("movie_id")
+
 	p := models.ShowPlaysByMovieId(id)
 	if len(p) == 0 {
 		utils.RespOk(c.Writer, "", "该电影目前没有演出～")
 		return
 	}
-	utils.RespOk(c.Writer, p, "返回电影的放映安排。")
+
+	var plays []PlayWithTheatre
+	for _, value := range p {
+		var pp PlayWithTheatre
+		pp.Play = value
+		pp.TheatreName = models.FindTheatreByid(value.TheatreId).Name
+		plays = append(plays, pp)
+	}
+	utils.RespOk(c.Writer, plays, "返回电影的放映安排。")
 }
 func ShowPlaysByTheatreId(c *gin.Context) {
 	id := c.Query("theatre_id")
@@ -26,7 +41,20 @@ func ShowPlaysByTheatreId(c *gin.Context) {
 		utils.RespOk(c.Writer, "", "该放映厅目前没有演出～")
 		return
 	}
-	utils.RespOk(c.Writer, p, "返回影院的放映安排。")
+	plays := make([]*PlayWithTheatre, 0)
+	for _, value := range p {
+		pp := &PlayWithTheatre{
+			Play: value,
+		}
+		movieId, err := strconv.Atoi(value.MovieId)
+		if err != nil {
+			utils.RespFail(c.Writer, "注意检查数据！")
+			return
+		}
+		pp.MovieName = models.FindMovieById(movieId).Name
+		plays = append(plays, pp)
+	}
+	utils.RespOk(c.Writer, plays, "返回影院的放映安排。")
 }
 
 func ShowPlayDetails(c *gin.Context) {
