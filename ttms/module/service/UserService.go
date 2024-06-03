@@ -276,3 +276,83 @@ func UserDetail(c *gin.Context) {
 	user := models.FindUserInfo(id)
 	utils.RespOk(c.Writer, user, user.Name+"个人信息图下")
 }
+
+type res struct {
+	Name    string
+	Picture string
+	Info    string
+	Price   float64 //价格
+	Num     int
+}
+type resTicket struct {
+	Name string
+	Num  int
+	//演出厅
+	Place int
+	//影片开始结束时间
+	Begintime time.Time
+	Endtime   time.Time
+	//座位
+	Seat []models.Seat `json:"seat"`
+}
+
+func MyOrder(c *gin.Context) {
+	id := c.Query("user_id")
+	user := models.FindUserInfo(id)
+	ticker := user.Ticket
+	snack := user.Snack
+
+	snacks := strings.Split(snack, " ")
+	tickers := strings.Split(ticker, " ")
+	Tickets := make([]resTicket, 0)
+
+	if ticker != "" {
+		for _, ticketID := range tickers {
+			t := models.GetTicketByID(ticketID)
+			seat := []models.Seat{}
+			err := json.Unmarshal(t.Seat, &seat)
+			if err != nil {
+				utils.RespFail(c.Writer, err.Error())
+				return
+			}
+			tt := resTicket{
+				Name:      t.Name,
+				Num:       t.Num,
+				Place:     t.Place,
+				Begintime: t.Begintime,
+				Endtime:   t.Endtime,
+				Seat:      seat,
+			}
+			Tickets = append(Tickets, tt)
+		}
+	} else {
+		Tickets = nil
+	}
+
+	Snacks := make([]*models.Snack, 0)
+	ress := make([]res, 0)
+	if snack != "" {
+		for _, snackId := range snacks {
+			s := models.GetsnackByid(snackId)
+			Snacks = append(Snacks, &s)
+		}
+		SnackInfo := mergeSnacks(Snacks)
+		for k, v := range SnackInfo {
+			snack_ := models.GetsnackByid(k)
+			ress_ := &res{
+				Name:    snack_.Name,
+				Picture: snack_.Picture,
+				Info:    snack_.Info,
+				Price:   snack_.Price,
+				Num:     v,
+			}
+			ress = append(ress, *ress_)
+		}
+	} else {
+		ress = nil
+	}
+	utils.RespOk(c.Writer, gin.H{
+		"ticket": Tickets,
+		"snack":  ress,
+	}, "返回订单信息")
+}

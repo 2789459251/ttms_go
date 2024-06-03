@@ -95,3 +95,8 @@ func FindSnackByIds(ids []string) []Snack {
 	}
 	return snacks
 }
+
+func GetsnackByid(id string) (s Snack) {
+	utils.DB.Where("id = ?", id).First(&s)
+	return
+}

@@ -44,3 +44,9 @@ func CreateTicket(play Play, movie Movie, seat []Seat) (Ticket, error) {
 	err := utils.DB.Create(&t_).Error
 	return t_, err
 }
+
+func GetTicketByID(id string) Ticket {
+	t := Ticket{}
+	utils.DB.Where("id = ?", id).First(&t)
+	return t
+}

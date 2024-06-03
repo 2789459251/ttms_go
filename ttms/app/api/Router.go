@@ -22,6 +22,7 @@ func Router() *gin.Engine {
 	userGroup.PUT("/admin", service.Admin)
 	userGroup.POST("/profile", service.Profile)
 	userGroup.GET("/detail", service.UserDetail)
+	userGroup.GET("/myOrder", service.MyOrder)
 	//登出
 	//userGroup.GET("/logout",service.Logout)
 	snackGroup := r.Group("/snack/api") //9

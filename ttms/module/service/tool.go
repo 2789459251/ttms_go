@@ -109,3 +109,20 @@ func isLimited(c *gin.Context) bool {
 	}
 	return true
 }
+
+func mergeSnacks(snacks []*models2.Snack) map[string]int {
+	// 使用映射来存储每个零食的名字和合并后的库存量
+	snackMap := make(map[string]int)
+
+	for _, snack := range snacks {
+		id := strconv.Itoa(int(snack.ID))
+		if _, exists := snackMap[id]; exists {
+			snackMap[id] = snackMap[id] + 1
+		} else {
+			// 否则，将这个零食添加到映射中
+			snackMap[id] = 1
+		}
+	}
+
+	return snackMap
+}
